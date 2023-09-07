@@ -3,8 +3,12 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
 import 'package:youprint/src/esc_pos_charset_encoding.dart';
+import 'package:zxing_lib/qrcode.dart' as qr;
+import 'package:zxing_lib/zxing.dart';
 
 import 'connection/device_connection.dart';
+import 'exceptions/esc_pos_barcode_exception.dart';
+import 'exceptions/esc_pos_encoding_exception.dart';
 
 class EscPosPrinterCommands {
   static const int lF = 0x0A;
@@ -136,6 +140,64 @@ class EscPosPrinterCommands {
     return returnedBytes;
   }
 
+  static Uint8List convertQRCodeToBytes(String data, int size) {
+    qr.ByteMatrix? byteMatrix;
+
+    try {
+      Map<EncodeHintType, Object> hints = <EncodeHintType, Object>{};
+      hints[EncodeHintType.CHARACTER_SET] = "UTF-8";
+      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.L, hints);
+      byteMatrix = code.matrix;
+    } catch (e) {
+      throw const EscPosBarcodeException("Unable to encode QR code");
+    }
+
+    if (byteMatrix == null) {
+      return EscPosPrinterCommands.initGSv0Command(0, 0);
+    }
+
+    int width = byteMatrix.width,
+        height = byteMatrix.height,
+        coefficient = (size / width).round(),
+        imageWidth = width * coefficient,
+        imageHeight = height * coefficient,
+        bytesByLine = (imageWidth / 8).ceil(),
+        i = 8;
+
+    if (coefficient < 1) {
+      return EscPosPrinterCommands.initGSv0Command(0, 0);
+    }
+
+    Uint8List imageBytes = EscPosPrinterCommands.initGSv0Command(bytesByLine, imageHeight);
+
+    for (int y = 0; y < height; y++) {
+      Uint8List lineBytes = Uint8List(bytesByLine);
+      int x = -1, multipleX = coefficient;
+      bool isBlack = false;
+      for (int j = 0; j < bytesByLine; j++) {
+        int b = 0;
+        for (int k = 0; k < 8; k++) {
+          if (multipleX == coefficient) {
+            isBlack = ++x < width && byteMatrix.get(x, y) == 1;
+            multipleX = 0;
+          }
+          if (isBlack) {
+            b |= 1 << (7 - k);
+          }
+          ++multipleX;
+        }
+        lineBytes[j] = b;
+      }
+
+      for (int multipleY = 0; multipleY < coefficient; ++multipleY) {
+        imageBytes.setRange(i, i + lineBytes.length, lineBytes, 0);
+        i += lineBytes.length;
+      }
+    }
+
+    return imageBytes;
+  }
+
   static Uint8List imageToBytes(Image image, bool gradient) {
     int imageWidth = image.width, imageHeight = image.height, bytesByLine = (imageWidth / 8).ceil();
     Uint8List imageBytes = EscPosPrinterCommands.initGSv0Command(bytesByLine, imageHeight);
@@ -255,6 +317,42 @@ class EscPosPrinterCommands {
 
     for (Uint8List bytes in bytesToPrint) {
       _printerConnection.write(bytes);
+    }
+    return this;
+  }
+
+  EscPosPrinterCommands printQRCode(int qrCodeType, String text, int size) {
+    if (size < 1) {
+      size = 1;
+    } else if (size > 16) {
+      size = 16;
+    }
+
+    try {
+      List<int> textBytes = utf8.encode(text);
+
+      int commandLength = textBytes.length + 3, pL = commandLength % 256, pH = commandLength ~/ 256;
+
+      /*byte[] qrCodeCommand = new byte[textBytes.length + 7];
+            System.arraycopy(new byte[]{0x1B, 0x5A, 0x00, 0x00, (byte)size, (byte)pL, (byte)pH}, 0, qrCodeCommand, 0, 7);
+            System.arraycopy(textBytes, 0, qrCodeCommand, 7, textBytes.length);
+            this.printerConnection.write(qrCodeCommand);*/
+
+      _printerConnection.write([0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, qrCodeType, 0x00]);
+      _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, size]);
+      _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30]);
+
+      Uint8List qrCodeCommand = Uint8List(textBytes.length + 8);
+      List<int> qrBytes = [0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30];
+      // System.arraycopy(qrBytes, 0, qrCodeCommand, 0, 8);
+      qrBytes.setRange(0, 8, qrCodeCommand, 0);
+
+      // System.arraycopy(textBytes, 0, qrCodeCommand, 8, textBytes.length);
+      textBytes.setRange(0, textBytes.length, qrCodeCommand, 8);
+      _printerConnection.write(qrCodeCommand);
+      _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30]);
+    } catch (e) {
+      throw EscPosEncodingException(e.toString());
     }
     return this;
   }

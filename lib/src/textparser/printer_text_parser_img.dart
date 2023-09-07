@@ -8,9 +8,21 @@ class PrinterTextParserImg implements PrinterTextParserElement {
   Uint8List _image = Uint8List(0);
 
   PrinterTextParserImg(
-      PrinterTextParserColumn printerTextParserColumn, String textAlign, String hexadecimalString) {
+    PrinterTextParserColumn printerTextParserColumn,
+    String textAlign, {
+    String? hexadecimalString,
+    Uint8List? bytes,
+  }) {
     EscPosPrinter printer = printerTextParserColumn.getLine.getTextParser.getPrinter;
-    Uint8List image = PrinterTextParserImg.hexadecimalStringToBytes(hexadecimalString);
+    Uint8List image = Uint8List(0);
+
+    if (hexadecimalString != null) {
+      image = PrinterTextParserImg.hexadecimalStringToBytes(hexadecimalString);
+    }
+
+    if (bytes != null) {
+      image = bytes;
+    }
 
     int byteWidth = (image[4] & 0xFF) + ((image[5] & 0xFF) * 256),
         width = byteWidth * 8,

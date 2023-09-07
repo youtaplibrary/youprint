@@ -5,6 +5,7 @@ import 'package:youprint/src/textparser/printer_text_parser.dart';
 import 'package:youprint/src/textparser/printer_text_parser_element.dart';
 import 'package:youprint/src/textparser/printer_text_parser_img.dart';
 import 'package:youprint/src/textparser/printer_text_parser_line.dart';
+import 'package:youprint/src/textparser/printer_text_parser_qr_code.dart';
 import 'package:youprint/src/textparser/printer_text_parser_string.dart';
 import 'package:youprint/src/textparser/printer_text_parser_tag.dart';
 
@@ -364,7 +365,7 @@ class PrinterTextParserColumn {
     HashMap<String, String> imageAttributes,
     String hexString,
   ) {
-    appendElement(PrinterTextParserImg(this, textAlign, hexString));
+    appendElement(PrinterTextParserImg(this, textAlign, hexadecimalString: hexString));
   }
 
   void appendBarcode(
@@ -380,7 +381,7 @@ class PrinterTextParserColumn {
     HashMap<String, String> qrCodeAttributes,
     String data,
   ) {
-    //TODO: appendQRCode in PrinterTextParserColumn
+    appendElement(PrinterTextParserQRCode(this, textAlign, qrCodeAttributes, data));
   }
 
   PrinterTextParserColumn prependElement(PrinterTextParserElement element) {

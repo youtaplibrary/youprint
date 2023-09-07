@@ -143,11 +143,14 @@ class _MyHomePageState extends State<MyHomePage> {
         "[L]Raymond DUPONT\n" +
         "[L]5 rue des girafes\n" +
         "[L]31547 PERPETES\n" +
-        "[L]Tel : +33801201456\n");
+        "[L]Tel : +33801201456\n" +
+        "[C]<qrcode>youtap.id</qrcode>\n");
     final AsyncEscPosPrint escPosPrint = AsyncEscPosPrint();
-    await escPosPrint.parsedToBytes(escPosPrinter);
+    escPosPrint.parsedToBytes(escPosPrinter);
+
     log('bytes: ${escPosPrinter.printerConnection.data.length}');
-    await Fluetooth().sendBytes(escPosPrinter.printerConnection.data);
+    // await Fluetooth().sendBytes(escPosPrinter.printerConnection.data);
+    // await Fluetooth().sendBytes(EscPosPrinterCommands.printQRCode());
   }
 
   @override
