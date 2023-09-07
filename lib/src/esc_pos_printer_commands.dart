@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart';
 import 'package:youprint/src/esc_pos_charset_encoding.dart';
 
 import 'connection/device_connection.dart';
@@ -67,13 +68,13 @@ class EscPosPrinterCommands {
     _charsetEncoding = charsetEncoding ?? EscPosCharsetEncoding("windows-1252", 16);
   }
 
-  static Uint8List initGSv0Command(int bytesByLine, int bitmapHeight) {
-    double xH = bytesByLine / 256,
+  static Uint8List initGSv0Command(int bytesByLine, int imageHeight) {
+    int xH = bytesByLine ~/ 256,
         xL = bytesByLine - (xH * 256),
-        yH = bitmapHeight / 256,
-        yL = bitmapHeight - (yH * 256);
+        yH = imageHeight ~/ 256,
+        yL = imageHeight - (yH * 256);
 
-    Uint8List imageBytes = Uint8List(8 + bytesByLine * bitmapHeight);
+    Uint8List imageBytes = Uint8List(8 + bytesByLine * imageHeight);
     imageBytes[0] = 0x1D;
     imageBytes[1] = 0x76;
     imageBytes[2] = 0x30;
@@ -82,6 +83,99 @@ class EscPosPrinterCommands {
     imageBytes[5] = xH.toInt();
     imageBytes[6] = yL.toInt();
     imageBytes[7] = yH.toInt();
+    return imageBytes;
+  }
+
+  static List<Uint8List> convertGsv0ToEscAsterisk(Uint8List bytes) {
+    int xL = bytes[4] & 0xFF,
+        xH = bytes[5] & 0xFF,
+        yL = bytes[6] & 0xFF,
+        yH = bytes[7] & 0xFF,
+        bytesByLine = xH * 256 + xL,
+        dotsByLine = bytesByLine * 8,
+        nH = dotsByLine ~/ 256,
+        nL = dotsByLine % 256,
+        imageHeight = yH * 256 + yL,
+        imageLineHeightCount = (imageHeight / 24.0).ceil(),
+        imageBytesSize = 6 + bytesByLine * 24;
+
+    List<Uint8List> returnedBytes = [Uint8List(imageLineHeightCount + 2)];
+    returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing24);
+    for (int i = 0; i < imageLineHeightCount; ++i) {
+      int pxBaseRow = i * 24;
+      Uint8List imageBytes = Uint8List(imageBytesSize);
+      imageBytes[0] = 0x1B;
+      imageBytes[1] = 0x2A;
+      imageBytes[2] = 0x21;
+      imageBytes[3] = nL;
+      imageBytes[4] = nH;
+      for (int j = 5; j < imageBytes.length; ++j) {
+        int imgByte = j - 5,
+            byteRow = imgByte % 3,
+            pxColumn = imgByte ~/ 3,
+            bitColumn = 1 << (7 - pxColumn % 8),
+            pxRow = pxBaseRow + byteRow * 8;
+        for (int k = 0; k < 8; ++k) {
+          int indexBytes = bytesByLine * (pxRow + k) + pxColumn ~/ 8 + 8;
+
+          if (indexBytes >= bytes.length) {
+            break;
+          }
+
+          bool isBlack = (bytes[indexBytes] & bitColumn) == bitColumn;
+          if (isBlack) {
+            imageBytes[j] |= 1 << 7 - k;
+          }
+        }
+      }
+      imageBytes[imageBytes.length - 1] = EscPosPrinterCommands.lF;
+      returnedBytes[i + 1] = imageBytes;
+    }
+    returnedBytes[returnedBytes.length - 1] =
+        Uint8List.fromList(EscPosPrinterCommands.lineSpacing24);
+    return returnedBytes;
+  }
+
+  static Uint8List imageToBytes(Image image, bool gradient) {
+    int imageWidth = image.width, imageHeight = image.height, bytesByLine = (imageWidth / 8).ceil();
+    Uint8List imageBytes = EscPosPrinterCommands.initGSv0Command(bytesByLine, imageHeight);
+    int i = 8, greyscaleCoefficientInit = 0, gradientStep = 6;
+
+    double colorLevelStep = 765.0 / (15 * gradientStep + gradientStep - 1);
+
+    for (int posY = 0; posY < imageHeight; posY++) {
+      int greyscaleCoefficient = greyscaleCoefficientInit, greyscaleLine = posY % gradientStep;
+      for (int j = 0; j < imageWidth; j += 8) {
+        int b = 0;
+        for (int k = 0; k < 8; k++) {
+          int posX = j + k;
+          if (posX < imageWidth) {
+            Pixel pixel = image.getPixel(posX, posY);
+            int red = pixel.getChannel(Channel.red).toInt();
+            int green = pixel.getChannel(Channel.green).toInt();
+            int blue = pixel.getChannel(Channel.blue).toInt();
+            if ((gradient &&
+                    (red + green + blue) <
+                        ((greyscaleCoefficient * gradientStep + greyscaleLine) * colorLevelStep)) ||
+                (!gradient && (red < 160 || green < 160 || blue < 160))) {
+              b |= 1 << (7 - k);
+            }
+
+            greyscaleCoefficient += 5;
+            if (greyscaleCoefficient > 15) {
+              greyscaleCoefficient -= 16;
+            }
+          }
+        }
+        imageBytes[i++] = b;
+      }
+
+      greyscaleCoefficientInit += 2;
+      if (greyscaleCoefficientInit > 15) {
+        greyscaleCoefficientInit = 0;
+      }
+    }
+
     return imageBytes;
   }
 
@@ -152,6 +246,16 @@ class EscPosPrinterCommands {
 
     _printerConnection.write(textBytes);
 
+    return this;
+  }
+
+  EscPosPrinterCommands printImage(Uint8List image) {
+    List<Uint8List> bytesToPrint =
+        _useEscAsteriskCommand ? EscPosPrinterCommands.convertGsv0ToEscAsterisk(image) : [image];
+
+    for (Uint8List bytes in bytesToPrint) {
+      _printerConnection.write(bytes);
+    }
     return this;
   }
 

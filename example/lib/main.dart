@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
 import 'package:youprint/youprint.dart';
 
 void main() {
@@ -115,7 +117,12 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     final DeviceConnection deviceConnection = DeviceConnection();
     final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
+    final ByteData logoBytes = await rootBundle.load('assets/logo.png');
+    final resize = img.copyResize(img.decodeImage(logoBytes.buffer.asUint8List())!, width: 150);
     escPosPrinter.addTextToPrint("[L]\n" +
+        "[C]<img>" +
+        PrinterTextParserImg.imageToHexadecimalString(escPosPrinter, resize, false) +
+        "</img>\n" +
         "[C]<u><font size='big'>ORDER N045</font></u>\n" +
         "[C]\n" +
         "[C]================================\n" +

@@ -1,10 +1,15 @@
+import 'dart:typed_data';
+
+import 'package:image/image.dart';
+import 'package:youprint/src/esc_pos_printer_commands.dart';
+
 class EscPosPrinterSize {
   static const double inchToMM = 25.4;
 
   final int printerDpi;
   final double printerWidthMM;
   final int _printerNbrCharactersPerLine;
-  int? printerWidthPx;
+  int printerWidthPx = 0;
   int printerCharSizeWidthPx = 0;
   int? printerNbrCharactersPerLine;
 
@@ -18,11 +23,36 @@ class EscPosPrinterSize {
     printerCharSizeWidthPx = printingWidthPx ~/ _printerNbrCharactersPerLine;
   }
 
+  Uint8List imageToBytes(Image image, bool gradient) {
+    bool isSizeEdit = false;
+    int bitmapWidth = image.width,
+        bitmapHeight = image.height,
+        maxWidth = printerWidthPx,
+        maxHeight = 256;
+
+    if (bitmapWidth > maxWidth) {
+      bitmapHeight = ((bitmapHeight) * (maxWidth) / (bitmapWidth)).round();
+      bitmapWidth = maxWidth;
+      isSizeEdit = true;
+    }
+    if (bitmapHeight > maxHeight) {
+      bitmapWidth = ((bitmapWidth) * (maxHeight) / (bitmapHeight)).round();
+      bitmapHeight = maxHeight;
+      isSizeEdit = true;
+    }
+
+    if (isSizeEdit) {
+      image = Image.fromResized(image, width: bitmapWidth, height: bitmapHeight);
+    }
+
+    return EscPosPrinterCommands.imageToBytes(image, gradient);
+  }
+
   int get getPrinterNbrCharactersPerLine =>
       printerNbrCharactersPerLine ?? _printerNbrCharactersPerLine;
   double get getPrinterWidthMM => printerWidthMM;
   int get getPrinterDpi => printerDpi;
-  int get getPrinterWidthPx => printerWidthPx ?? 0;
+  int get getPrinterWidthPx => printerWidthPx;
   int get getPrinterCharSizeWidthPx => printerCharSizeWidthPx;
   int mmToPx(double mmSize) {
     return (mmSize * printerDpi / EscPosPrinterSize.inchToMM).round();

@@ -61,7 +61,7 @@ class PrinterTextParserString implements PrinterTextParserElement {
   }
 
   @override
-  void print(EscPosPrinterCommands printerSocket) {
+  PrinterTextParserString print(EscPosPrinterCommands printerSocket) {
     printerSocket.printText(
       _text,
       _textSize,
@@ -71,5 +71,6 @@ class PrinterTextParserString implements PrinterTextParserElement {
       _textUnderline,
       _textDoubleStrike,
     );
+    return this;
   }
 }

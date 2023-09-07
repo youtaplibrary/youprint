@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:youprint/src/esc_pos_printer_commands.dart';
 import 'package:youprint/src/textparser/printer_text_parser.dart';
 import 'package:youprint/src/textparser/printer_text_parser_element.dart';
+import 'package:youprint/src/textparser/printer_text_parser_img.dart';
 import 'package:youprint/src/textparser/printer_text_parser_line.dart';
 import 'package:youprint/src/textparser/printer_text_parser_string.dart';
 import 'package:youprint/src/textparser/printer_text_parser_tag.dart';
@@ -363,7 +364,7 @@ class PrinterTextParserColumn {
     HashMap<String, String> imageAttributes,
     String hexString,
   ) {
-    //TODO: appendImage in PrinterTextParserColumn
+    appendElement(PrinterTextParserImg(this, textAlign, hexString));
   }
 
   void appendBarcode(
@@ -388,7 +389,7 @@ class PrinterTextParserColumn {
       null,
     );
     elementsTmp[0] = element;
-    List.copyRange(elementsTmp, 1, _elements, 0, _elements.length);
+    elementsTmp.setRange(1, 1 + _elements.length, _elements, 0);
     _elements = elementsTmp;
     return this;
   }
@@ -398,12 +399,14 @@ class PrinterTextParserColumn {
       _elements.length + 1,
       null,
     );
-    List.copyRange(elementsTmp, 0, _elements, 0, _elements.length);
+    elementsTmp.setRange(0, _elements.length, _elements, 0);
     elementsTmp[_elements.length] = element;
     _elements = elementsTmp;
   }
 
   List<PrinterTextParserElement?> get getElements => _elements;
+
+  PrinterTextParserLine get getLine => _line;
 
   static String generateSpace(int nbrSpace) {
     StringBuffer str = StringBuffer();

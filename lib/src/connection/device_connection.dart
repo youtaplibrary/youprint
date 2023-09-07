@@ -18,8 +18,8 @@ class DeviceConnection {
   //     }
   void write(List<int> bytes) {
     List<int> data = Uint8List(bytes.length + this.data.length);
-    List.copyRange(data, 0, this.data, 0, this.data.length);
-    List.copyRange(data, this.data.length, bytes, 0, bytes.length);
+    data.setRange(0, this.data.length, this.data, 0);
+    data.setRange(this.data.length, this.data.length + bytes.length, bytes, 0);
     this.data = data;
   }
 }

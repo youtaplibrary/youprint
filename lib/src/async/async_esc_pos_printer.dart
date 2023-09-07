@@ -21,7 +21,7 @@ class AsyncEscPosPrinter extends EscPosPrinterSize {
   AsyncEscPosPrinter? addTextToPrint(String? textToPrint) {
     if (textToPrint != null) {
       List<String?> tmp = List.filled(textToPrint.length + 1, null);
-      List.copyRange(tmp, 0, textsToPrint, 0, textsToPrint.length);
+      tmp.setRange(0, textsToPrint.length, tmp, 0);
       tmp[textsToPrint.length] = textToPrint;
       textsToPrint = tmp;
       return this;

@@ -97,13 +97,13 @@ class PrinterTextParser {
     }
 
     List<List<int>> newArr = List.filled(arr.length - 1, []);
-    List.copyRange(newArr, 0, arr, 0, newArr.length);
+    newArr.setRange(0, newArr.length, arr, 0);
     return newArr;
   }
 
   static List<List<int>> arrayBytePush(List<List<int>> arr, List<int> add) {
     List<List<int>> newArr = List.filled(arr.length + 1, []);
-    List.copyRange(newArr, 0, arr, 0, arr.length);
+    newArr.setRange(0, arr.length, arr, 0);
     newArr[arr.length] = add;
     return newArr;
   }
@@ -199,7 +199,7 @@ class PrinterTextParser {
   }
 
   List<PrinterTextParserLine?> parse() {
-    List<String> stringLines = _text.split('\n');
+    List<String> stringLines = _text.split(RegExp(r'\n|\r\n'));
     List<PrinterTextParserLine?> lines = List.filled(stringLines.length, null);
     int i = 0;
     for (String line in stringLines) {
