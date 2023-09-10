@@ -18,15 +18,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -36,16 +27,6 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -53,8 +34,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
   // This widget is the root of your application.
   bool _isBusy = false;
   List<FluetoothDevice>? _devices;
@@ -119,52 +98,47 @@ class _MyHomePageState extends State<MyHomePage> {
     final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
     final ByteData logoBytes = await rootBundle.load('assets/logo.png');
     final resize = img.copyResize(img.decodeImage(logoBytes.buffer.asUint8List())!, width: 150);
-    escPosPrinter.addTextToPrint("[L]\n" +
-        "[C]<img>" +
-        PrinterTextParserImg.imageToHexadecimalString(escPosPrinter, resize, false) +
-        "</img>\n" +
-        "[C]<u><font size='big'>ORDER N045</font></u>\n" +
-        "[C]\n" +
-        "[C]================================\n" +
-        "[L]\n" +
-        "[L]<b>BEAUTIFUL SHIRT</b>[R]9.99€\n" +
-        "[L]  + Size : S\n" +
-        "[L]\n" +
-        "[L]<b>AWESOME HAT</b>[R]24.99€\n" +
-        "[L]  + Size : 57/58\n" +
-        "[L]\n" +
-        "[C]--------------------------------\n" +
-        "[R]TOTAL PRICE :[R]34.98€\n" +
-        "[R]TAX :[R]4.23€\n" +
-        "[L]\n" +
-        "[C]================================\n" +
-        "[L]\n" +
-        "[L]<u><font color='bg-black' size='tall'>Customer :</font></u>\n" +
-        "[L]Raymond DUPONT\n" +
-        "[L]5 rue des girafes\n" +
-        "[L]31547 PERPETES\n" +
-        "[L]Tel : +33801201456\n" +
-        "[C]<qrcode>youtap.id</qrcode>\n");
+    StringBuffer bufferText = StringBuffer()
+      ..write("[C]<img>")
+      ..write(PrinterTextParserImg.imageToHexadecimalString(escPosPrinter, resize, false))
+      ..write("</img>\n")
+      ..write("[C]<u><font size='big'>ORDER N045</font></u>\n")
+      ..write("[C]\n")
+      ..write("[C]================================\n")
+      ..write("[L]\n")
+      ..write("[L]<b>BEAUTIFUL SHIRT</b>[R]9.99€\n")
+      ..write("[L]  + Size : S\n")
+      ..write("[L]\n")
+      ..write("[L]<b>AWESOME HAT</b>[R]24.99€\n")
+      ..write("[L]  + Size : 57/58\n")
+      ..write("[L]\n")
+      ..write("[C]--------------------------------\n")
+      ..write("[R]TOTAL PRICE :[R]34.98€\n")
+      ..write("[R]TAX :[R]4.23€\n")
+      ..write("[L]\n")
+      ..write("[C]================================\n")
+      ..write("[L]\n")
+      ..write("[L]<u><font color='bg-black' size='tall'>Customer :</font></u>\n")
+      ..write("[L]Raymond DUPONT\n")
+      ..write("[L]5 rue des girafes\n")
+      ..write("[L]31547 PERPETES\n")
+      ..write("[L]Tel : +33801201456\n")
+      ..write("[L]\n")
+      ..write("[C]<barcode type='ean13' height='10'>831254784551</barcode>\n")
+      ..write("[C]<qrcode>youtap.id</qrcode>\n");
+    escPosPrinter.addTextToPrint(bufferText.toString());
     final AsyncEscPosPrint escPosPrint = AsyncEscPosPrint();
     escPosPrint.parsedToBytes(escPosPrinter);
 
-    log('bytes: ${escPosPrinter.printerConnection.data.length}');
-    // await Fluetooth().sendBytes(escPosPrinter.printerConnection.data);
+    log('bytes: ${escPosPrinter.printerConnection.data}');
+    await Fluetooth().sendBytes(escPosPrinter.printerConnection.data);
     // await Fluetooth().sendBytes(EscPosPrinterCommands.printQRCode());
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(

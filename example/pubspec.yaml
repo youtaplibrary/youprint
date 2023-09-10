@@ -33,6 +33,7 @@ dependencies:
   youprint:
     path: ../
   fluetooth: ^0.0.6
+  image: 4.0.17
 
 
   # The following adds the Cupertino Icons font to your application.
