@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:youprint/src/esc_pos_printer_commands.dart';
 import 'package:youprint/src/textparser/printer_text_parser.dart';
+import 'package:youprint/src/textparser/printer_text_parser_barcode.dart';
 import 'package:youprint/src/textparser/printer_text_parser_element.dart';
 import 'package:youprint/src/textparser/printer_text_parser_img.dart';
 import 'package:youprint/src/textparser/printer_text_parser_line.dart';
@@ -373,7 +374,7 @@ class PrinterTextParserColumn {
     HashMap<String, String> barcodeAttributes,
     String code,
   ) {
-    //TODO: appendBarcode in PrinterTextParserColumn
+    appendElement(PrinterTextParserBarcode(this, textAlign, barcodeAttributes, code));
   }
 
   void appendQRCode(

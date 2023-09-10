@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
+import 'package:youprint/src/barcode/barcode.dart';
 import 'package:youprint/src/esc_pos_charset_encoding.dart';
 import 'package:zxing_lib/qrcode.dart' as qr;
 import 'package:zxing_lib/zxing.dart';
@@ -103,7 +104,7 @@ class EscPosPrinterCommands {
         imageLineHeightCount = (imageHeight / 24.0).ceil(),
         imageBytesSize = 6 + bytesByLine * 24;
 
-    List<Uint8List> returnedBytes = [Uint8List(imageLineHeightCount + 2)];
+    List<Uint8List> returnedBytes = List.filled(imageLineHeightCount + 2, Uint8List(0));
     returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing24);
     for (int i = 0; i < imageLineHeightCount; ++i) {
       int pxBaseRow = i * 24;
@@ -135,8 +136,9 @@ class EscPosPrinterCommands {
       imageBytes[imageBytes.length - 1] = EscPosPrinterCommands.lF;
       returnedBytes[i + 1] = imageBytes;
     }
-    returnedBytes[returnedBytes.length - 1] =
-        Uint8List.fromList(EscPosPrinterCommands.lineSpacing24);
+    returnedBytes[returnedBytes.length - 1] = Uint8List.fromList(
+      EscPosPrinterCommands.lineSpacing24,
+    );
     return returnedBytes;
   }
 
@@ -354,6 +356,28 @@ class EscPosPrinterCommands {
     } catch (e) {
       throw EscPosEncodingException(e.toString());
     }
+    return this;
+  }
+
+  EscPosPrinterCommands printBarcode(Barcode? barcode) {
+    if (barcode == null) {
+      return this;
+    }
+
+    String code = barcode.getCode;
+    int barcodeLength = barcode.getCodeLength;
+    Uint8List barcodeCommand = Uint8List(barcodeLength + 4);
+    barcodeCommand.setRange(
+        0, 4, Uint8List.fromList([0x1D, 0x6B, barcode.getBarcodeType, barcodeLength]), 0);
+
+    for (int i = 0; i < barcodeLength; i++) {
+      barcodeCommand[i + 4] = code.codeUnitAt(i);
+    }
+
+    _printerConnection.write([0x1D, 0x48, barcode.getTextPosition]);
+    _printerConnection.write([0x1D, 0x77, barcode.getColWidth]);
+    _printerConnection.write([0x1D, 0x68, barcode.getHeight]);
+    _printerConnection.write(barcodeCommand);
     return this;
   }
 

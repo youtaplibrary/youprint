@@ -39,6 +39,7 @@ class PrinterTextParserImg implements PrinterTextParserElement {
         break;
     }
 
+    // nbrWhiteByteToInsert = 0;
     if (nbrWhiteByteToInsert > 0) {
       int newByteWidth = byteWidth + nbrWhiteByteToInsert;
       Uint8List newImage = EscPosPrinterCommands.initGSv0Command(newByteWidth, height);
@@ -50,6 +51,7 @@ class PrinterTextParserImg implements PrinterTextParserElement {
           (byteWidth * i + 8),
         );
       }
+
       image = newImage;
     }
 

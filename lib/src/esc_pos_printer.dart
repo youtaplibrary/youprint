@@ -68,19 +68,16 @@ class EscPosPrinter extends EscPosPrinterSize {
     double? mmFeedPaper,
     int? dotsFeedPaper,
   }) {
+    if (_printer == null || printerNbrCharactersPerLine == 0) {
+      return this;
+    }
+
     if (mmFeedPaper != null) {
       dotsFeedPaper = mmToPx(mmFeedPaper);
     }
 
-    if (dotsFeedPaper != null) {
-      if (_printer == null || printerNbrCharactersPerLine == 0) {
-        return this;
-      }
-
-      printFormattedText(text, dotsFeedPaper);
-      _printer?.cutPaper();
-      return this;
-    }
+    printFormattedText(text, dotsFeedPaper ?? 0);
+    _printer?.cutPaper();
     return this;
   }
 

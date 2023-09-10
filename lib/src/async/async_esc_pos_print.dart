@@ -19,7 +19,7 @@ class AsyncEscPosPrint {
       List<String?> textsToPrint = printersData.textsToPrint;
       for (String? textToPrint in textsToPrint) {
         if (textToPrint != null) {
-          printer.printFormattedText(textToPrint, 20);
+          printer.printFormattedTextAndCut(textToPrint, mmFeedPaper: 10.0);
         }
       }
     } catch (e) {
