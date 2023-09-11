@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -129,8 +127,6 @@ class _MyHomePageState extends State<MyHomePage> {
     escPosPrinter.addTextToPrint(bufferText.toString());
     final AsyncEscPosPrint escPosPrint = AsyncEscPosPrint();
     escPosPrint.parsedToBytes(escPosPrinter);
-
-    log('bytes: ${escPosPrinter.printerConnection.data}');
     await Fluetooth().sendBytes(escPosPrinter.printerConnection.data);
     // await Fluetooth().sendBytes(EscPosPrinterCommands.printQRCode());
   }

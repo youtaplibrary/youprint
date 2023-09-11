@@ -146,9 +146,8 @@ class EscPosPrinterCommands {
     qr.ByteMatrix? byteMatrix;
 
     try {
-      Map<EncodeHintType, Object> hints = <EncodeHintType, Object>{};
-      hints[EncodeHintType.CHARACTER_SET] = "UTF-8";
-      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.L, hints);
+      const EncodeHint hint = EncodeHint(characterSet: "UTF-8");
+      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.L, hint);
       byteMatrix = code.matrix;
     } catch (e) {
       throw const EscPosBarcodeException("Unable to encode QR code");

@@ -331,10 +331,10 @@ packages:
     dependency: transitive
     description:
       name: zxing_lib
-      sha256: "84f6ec19b04dd54bc0b25c539c7c3567a5f9e872e3feb23763df027a1f855c11"
+      sha256: e92d0c9114130c92aa199d240b528745a5d977c3c807755f3efd59ea1ee2d93a
       url: "https://pub.dev"
     source: hosted
-    version: "0.9.0"
+    version: "1.0.0"
 sdks:
   dart: ">=2.19.6 <3.0.0"
   flutter: ">=2.8.0"

@@ -1,7 +1,7 @@
 name: youprint
-description: A new Flutter project.
+description: Text parser for ESC/POS Thermal Printer.
 version: 0.0.1
-homepage:
+homepage: https://github.com/youtaplibrary/youprint
 
 environment:
   sdk: '>=2.19.6 <3.0.0'
@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   image: 4.0.17
-  zxing_lib: 0.9.0
+  zxing_lib: 1.0.0
 
 dev_dependencies:
   flutter_test:
