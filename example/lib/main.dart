@@ -125,9 +125,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ..write("[C]<barcode type='ean13' height='10'>831254784551</barcode>\n")
       ..write("[C]<qrcode>youtap.id</qrcode>\n");
     escPosPrinter.addTextToPrint(bufferText.toString());
-    final AsyncEscPosPrint escPosPrint = AsyncEscPosPrint();
-    escPosPrint.parsedToBytes(escPosPrinter);
-    await Fluetooth().sendBytes(escPosPrinter.printerConnection.data);
+    final bytes = await escPosPrinter.parsedToBytes();
+    await Fluetooth().sendBytes(bytes);
     // await Fluetooth().sendBytes(EscPosPrinterCommands.printQRCode());
   }
 
