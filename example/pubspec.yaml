@@ -33,7 +33,7 @@ dependencies:
   youprint:
     path: ../
   fluetooth: ^0.0.6
-  image: 4.0.17
+  image: 3.2.2
   intl: 0.18.1
 
 
