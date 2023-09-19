@@ -213,10 +213,11 @@ class EscPosPrinterCommands {
         for (int k = 0; k < 8; k++) {
           int posX = j + k;
           if (posX < imageWidth) {
-            Pixel pixel = image.getPixel(posX, posY);
-            int red = pixel.getChannel(Channel.red).toInt();
-            int green = pixel.getChannel(Channel.green).toInt();
-            int blue = pixel.getChannel(Channel.blue).toInt();
+            // Pixel pixel = image.getPixel(posX, posY);
+            int color = image.getPixel(posX, posY),
+                red = (color >> 16) & 255,
+                green = (color >> 8) & 255,
+                blue = color & 255;
             if ((gradient &&
                     (red + green + blue) <
                         ((greyscaleCoefficient * gradientStep + greyscaleLine) * colorLevelStep)) ||
