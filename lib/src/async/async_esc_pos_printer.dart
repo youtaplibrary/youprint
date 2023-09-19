@@ -7,17 +7,13 @@ import 'package:youprint/src/esc_pos_printer_size.dart';
 
 class AsyncEscPosPrinter extends EscPosPrinterSize {
   final DeviceConnection printerConnection;
-  final double? mmFeedPaper;
-  final int? dotsFeedPaper;
 
   AsyncEscPosPrinter(
     this.printerConnection,
     int printerDpi,
     double printerWidthMM,
-    int printerNbrCharactersPerLine, {
-    this.mmFeedPaper,
-    this.dotsFeedPaper,
-  }) : super(printerDpi, printerWidthMM, printerNbrCharactersPerLine);
+    int printerNbrCharactersPerLine,
+  ) : super(printerDpi, printerWidthMM, printerNbrCharactersPerLine);
 
   List<String?> textsToPrint = [];
 
@@ -37,7 +33,11 @@ class AsyncEscPosPrinter extends EscPosPrinterSize {
     return this;
   }
 
-  Future<Uint8List> parsedToBytes() async {
+  Future<Uint8List> parsedToBytes({
+    int feedCount = 0,
+    bool useCut = false,
+    bool openDrawer = false,
+  }) async {
     try {
       final deviceConnection = printerConnection;
       final printer = EscPosPrinter(
@@ -54,14 +54,17 @@ class AsyncEscPosPrinter extends EscPosPrinterSize {
         if (textToPrint != null) {
           printer.printFormattedTextAndCut(
             textToPrint,
-            mmFeedPaper: mmFeedPaper ?? 10.0,
-            dotsFeedPaper: dotsFeedPaper,
+            dotsFeedPaper: feedCount,
+            useCut: useCut,
+            openDrawer: openDrawer,
           );
         }
       }
     } catch (e) {
       log('AsyncEscPosPrint: $e');
     }
+
+    log('${printerConnection.data}');
     return Uint8List.fromList(printerConnection.data);
   }
 }
