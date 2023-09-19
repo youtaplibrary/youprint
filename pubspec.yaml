@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  image: 4.0.17
+  image: 3.2.2
   zxing_lib: 1.0.0
   fluetooth: 0.0.6
 
