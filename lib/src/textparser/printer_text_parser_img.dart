@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:image/image.dart';
+import 'package:youprint/src/exceptions/exception.dart';
 import 'package:youprint/youprint.dart';
 
 class PrinterTextParserImg implements PrinterTextParserElement {
@@ -64,6 +66,16 @@ class PrinterTextParserImg implements PrinterTextParserElement {
     Image image,
     bool gradient,
   ) {
+    return PrinterTextParserImg.bytesToHexadecimalString(printerSize.imageToBytes(image, gradient));
+  }
+
+  static String base64ImageToHexadecimalString(
+    EscPosPrinterSize printerSize,
+    String base64Image,
+    bool gradient,
+  ) {
+    final Image? image = decodeImage(base64.decode(base64Image));
+    if (image == null) throw const EscPosParserException('Failed to parse base64 to image');
     return PrinterTextParserImg.bytesToHexadecimalString(printerSize.imageToBytes(image, gradient));
   }
 

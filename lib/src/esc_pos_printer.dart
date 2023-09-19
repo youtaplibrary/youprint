@@ -67,6 +67,8 @@ class EscPosPrinter extends EscPosPrinterSize {
     String text, {
     double? mmFeedPaper,
     int? dotsFeedPaper,
+    required bool useCut,
+    required bool openDrawer,
   }) {
     if (_printer == null || printerNbrCharactersPerLine == 0) {
       return this;
@@ -77,7 +79,14 @@ class EscPosPrinter extends EscPosPrinterSize {
     }
 
     printFormattedText(text, dotsFeedPaper ?? 0);
-    _printer?.cutPaper();
+
+    if (useCut) {
+      _printer?.cutPaper();
+    }
+
+    if (openDrawer) {
+      _printer?.openCashBox();
+    }
     return this;
   }
 

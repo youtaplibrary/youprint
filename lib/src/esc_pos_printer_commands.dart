@@ -687,7 +687,7 @@ class EscPosPrinterCommands {
 
   void feedPaper(int dots) {
     if (dots > 0) {
-      _printerConnection.write([0x1B, 0x4A, dots]);
+      _printerConnection.write([0x1B, 0x64, dots]);
     }
   }
 
