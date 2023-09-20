@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import 'package:youprint/src/extensions/string_extension.dart';
+
 import 'receipt_text_style.dart';
 import 'receipt_text_style_type.dart';
 
@@ -21,32 +25,38 @@ class ReceiptTextLeftRight {
   final ReceiptTextStyle rightTextStyle;
 
   String get content {
-    String text = '';
-    if (leftText.length > 16) {
-      final multiLine = splitStringByLength(leftText, 16);
+    StringBuffer stringBuffer = StringBuffer();
+    final leftMultiLine = leftText.splitByLength(15);
+    final rightMultiLine = rightText.splitByLength(15);
+    final maxLine = max(leftMultiLine.length, rightMultiLine.length);
 
-      for (String line in multiLine) {
-        text +=
-            '[L]<${leftTextStyle.textStyleContent} ${leftTextStyle.textSizeContent}>$line</${leftTextStyle.textStyleContent}>\n';
+    for (int i = 0; i < maxLine; i++) {
+      if (i > leftMultiLine.length - 1) {
+        String leftLine = '[L]';
+        stringBuffer.write(leftLine);
+      } else {
+        String leftLine = leftMultiLine[i];
+        stringBuffer
+          ..write("[L]")
+          ..write("<${leftTextStyle.textStyleContent} ${leftTextStyle.textSizeContent}>")
+          ..write(leftLine)
+          ..write("</${leftTextStyle.textStyleContent}>");
       }
-    } else {
-      text +=
-          '[L]<${leftTextStyle.textStyleContent} ${leftTextStyle.textSizeContent}>$leftText</${leftTextStyle.textStyleContent}>';
+
+      if (i > rightMultiLine.length - 1) {
+        String rightLine = '\n';
+        stringBuffer.write(rightLine);
+      } else {
+        String rightLine = rightMultiLine[i];
+        stringBuffer
+          ..write("[R]")
+          ..write("<${rightTextStyle.textStyleContent} ${rightTextStyle.textSizeContent}>")
+          ..write(rightLine)
+          ..write("</${rightTextStyle.textStyleContent}>\n");
+      }
     }
 
-    if (rightText.length > 16) {
-      final multiLine = splitStringByLength(rightText, 16);
-      for (String line in multiLine) {
-        text +=
-            '[R]<${rightTextStyle.textStyleContent} ${rightTextStyle.textSizeContent}>$line</${rightTextStyle.textStyleContent}>\n';
-      }
-    } else {
-      text +=
-          '[R]<${rightTextStyle.textStyleContent} ${rightTextStyle.textSizeContent}>$rightText</${rightTextStyle.textStyleContent}>';
-    }
-    return '$text\n';
+    print(stringBuffer.toString());
+    return stringBuffer.toString();
   }
-
-  List<String> splitStringByLength(String str, int length) =>
-      [str.substring(0, length), str.substring(length)];
 }

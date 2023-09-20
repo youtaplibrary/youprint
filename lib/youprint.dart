@@ -6,6 +6,7 @@ export 'src/esc_pos_charset_encoding.dart';
 export 'src/esc_pos_printer.dart';
 export 'src/esc_pos_printer_commands.dart';
 export 'src/esc_pos_printer_size.dart';
+export 'src/extensions/string_extension.dart';
 export 'src/models/models.dart';
 export 'src/receipt/receipt.dart';
 export 'src/textparser/textparser.dart';
