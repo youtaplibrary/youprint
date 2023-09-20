@@ -4,7 +4,6 @@ import 'dart:developer';
 
 import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/services.dart';
-import 'package:image/image.dart' as img;
 import 'package:youprint/src/receipt/receipt_image.dart';
 import 'package:youprint/youprint.dart';
 
@@ -151,11 +150,11 @@ class Youprint {
   }) async {
     final DeviceConnection deviceConnection = DeviceConnection();
     final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
-    final resize = img.copyResize(
-      img.decodeImage(Uint8List.fromList(bytes))!,
-      width: width,
-    );
-    final base64Image = base64.encode(resize.getBytes());
+    // final resize = img.copyResize(
+    //   img.decodeImage(Uint8List.fromList(bytes))!,
+    //   width: width,
+    // );
+    final base64Image = base64.encode(Uint8List.fromList(bytes));
     final hexadecimal =
         PrinterTextParserImg.base64ImageToHexadecimalString(escPosPrinter, base64Image, false);
     final ReceiptImage image = ReceiptImage(hexadecimal);
