@@ -155,9 +155,7 @@ class Youprint {
     //   width: width,
     // );
     final base64Image = base64.encode(Uint8List.fromList(bytes));
-    final hexadecimal =
-        PrinterTextParserImg.base64ImageToHexadecimalString(escPosPrinter, base64Image, false);
-    final ReceiptImage image = ReceiptImage(hexadecimal);
+    final ReceiptImage image = ReceiptImage(base64Image);
     escPosPrinter.addTextToPrint(image.content);
     final bytesResult = await escPosPrinter.parsedToBytes(
       feedCount: feedCount,
