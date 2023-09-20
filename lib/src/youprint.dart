@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:fluetooth/fluetooth.dart';
@@ -154,7 +155,9 @@ class Youprint {
       img.decodeImage(Uint8List.fromList(bytes))!,
       width: width,
     );
-    final hexadecimal = PrinterTextParserImg.imageToHexadecimalString(escPosPrinter, resize, false);
+    final base64Image = base64.encode(resize.getBytes());
+    final hexadecimal =
+        PrinterTextParserImg.base64ImageToHexadecimalString(escPosPrinter, base64Image, false);
     final ReceiptImage image = ReceiptImage(hexadecimal);
     escPosPrinter.addTextToPrint(image.content);
     final bytesResult = await escPosPrinter.parsedToBytes(
