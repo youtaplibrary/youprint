@@ -156,7 +156,7 @@ class Youprint {
     );
     final hexadecimal = PrinterTextParserImg.imageToHexadecimalString(escPosPrinter, resize, false);
     final ReceiptImage image = ReceiptImage(hexadecimal);
-    escPosPrinter.addTextToPrint(image.text);
+    escPosPrinter.addTextToPrint(image.content);
     final bytesResult = await escPosPrinter.parsedToBytes(
       feedCount: feedCount,
       useCut: true,
@@ -190,7 +190,7 @@ class Youprint {
     final DeviceConnection deviceConnection = DeviceConnection();
     final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
     final ReceiptQR qr = ReceiptQR(data, size: size.toInt());
-    escPosPrinter.addTextToPrint(qr.text);
+    escPosPrinter.addTextToPrint(qr.content);
     final bytes = await escPosPrinter.parsedToBytes(
       feedCount: feedCount,
       useCut: useCut,

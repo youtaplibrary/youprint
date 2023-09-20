@@ -10,5 +10,5 @@ class ReceiptQR {
   final int size;
 
   int get mm => Youprint.pixelToMM(size);
-  String get text => "[C]<qrcode size='$mm'>$data</qrcode>\n";
+  String get content => "[C]<qrcode size='$mm'>$data</qrcode>\n";
 }

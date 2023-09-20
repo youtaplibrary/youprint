@@ -5,7 +5,7 @@ class ReceiptPixelSpace {
 
   final int pixels;
 
-  String get html {
+  String get content {
     return '\n';
   }
 }

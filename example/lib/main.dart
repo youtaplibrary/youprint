@@ -104,6 +104,12 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
+    // final ReceiptSectionText receiptSectionText = ReceiptSectionText();
+    // receiptSectionText.addSpacer();
+    // // receiptSectionText.addLeftRightText("TrailID", "202309X001695178");
+    // receiptSectionText.addLeftRightText("TrailID", "202309X001695178604015");
+    // await _youprint.printReceiptText(receiptSectionText);
+
     /// Example for Print Image
     final ByteData logoBytes = await rootBundle.load(
       'assets/logo.png',

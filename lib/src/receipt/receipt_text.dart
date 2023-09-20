@@ -18,8 +18,8 @@ class ReceiptText {
   final ReceiptTextStyle textStyle;
   final ReceiptAlignment alignment;
 
-  String get html =>
-      '$_alignmentStyleHTML<${textStyle.textStyleHTML} ${textStyle.textSizeHtml}>$text</${textStyle.textStyleHTML}>\n';
+  String get content =>
+      '$_alignmentStyleHTML<${textStyle.textStyleContent} ${textStyle.textSizeContent}>$text</${textStyle.textStyleContent}>\n';
 
   String get _alignmentStyleHTML {
     if (alignment == ReceiptAlignment.left) {

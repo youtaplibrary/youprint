@@ -21,7 +21,7 @@ class ReceiptTextStyle {
 
   /// Tag p for normal text, b for bold text and span for left right text
   /// This getter to get tag of text used
-  String get textStyleHTML {
+  String get textStyleContent {
     if (useSpan) {
       return type == ReceiptTextStyleType.normal ? 'font' : 'font';
     }
@@ -29,16 +29,16 @@ class ReceiptTextStyle {
   }
 
   /// This getter to get style of alignment text
-  String get textSizeHtml {
+  String get textSizeContent {
     switch (size) {
       case ReceiptTextSizeType.small:
         return "size='normal'";
       case ReceiptTextSizeType.medium:
         return "size='normal'";
       case ReceiptTextSizeType.large:
-        return "size='normal'";
+        return "size='wide'";
       case ReceiptTextSizeType.extraLarge:
-        return "size='normal'";
+        return "size='wide'";
       default:
         return "size='normal'";
     }

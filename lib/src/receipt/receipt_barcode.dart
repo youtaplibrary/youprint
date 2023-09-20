@@ -10,5 +10,5 @@ class ReceiptBarcode {
   final int size;
 
   int get mm => Youprint.pixelToMM(size);
-  String get text => "[C]<barcode type='128' height='$mm'>$data</barcode>\n";
+  String get content => "[C]<barcode type='128' height='$mm'>$data</barcode>\n";
 }

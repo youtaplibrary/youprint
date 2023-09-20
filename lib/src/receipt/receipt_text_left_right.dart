@@ -20,6 +20,33 @@ class ReceiptTextLeftRight {
   final ReceiptTextStyle leftTextStyle;
   final ReceiptTextStyle rightTextStyle;
 
-  String get html =>
-      '[L]<${leftTextStyle.textStyleHTML} ${leftTextStyle.textSizeHtml}>$leftText</${leftTextStyle.textStyleHTML}>[R]<${rightTextStyle.textStyleHTML} ${rightTextStyle.textSizeHtml}>$rightText</${rightTextStyle.textStyleHTML}>\n';
+  String get content {
+    String text = '';
+    if (leftText.length > 16) {
+      final multiLine = splitStringByLength(leftText, 16);
+
+      for (String line in multiLine) {
+        text +=
+            '[L]<${leftTextStyle.textStyleContent} ${leftTextStyle.textSizeContent}>$line</${leftTextStyle.textStyleContent}>\n';
+      }
+    } else {
+      text +=
+          '[L]<${leftTextStyle.textStyleContent} ${leftTextStyle.textSizeContent}>$leftText</${leftTextStyle.textStyleContent}>';
+    }
+
+    if (rightText.length > 16) {
+      final multiLine = splitStringByLength(rightText, 16);
+      for (String line in multiLine) {
+        text +=
+            '[R]<${rightTextStyle.textStyleContent} ${rightTextStyle.textSizeContent}>$line</${rightTextStyle.textStyleContent}>\n';
+      }
+    } else {
+      text +=
+          '[R]<${rightTextStyle.textStyleContent} ${rightTextStyle.textSizeContent}>$rightText</${rightTextStyle.textStyleContent}>';
+    }
+    return '$text\n';
+  }
+
+  List<String> splitStringByLength(String str, int length) =>
+      [str.substring(0, length), str.substring(length)];
 }
