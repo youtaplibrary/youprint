@@ -64,7 +64,7 @@ class EscPosPrinterCommands {
 
   final DeviceConnection _printerConnection;
   late final EscPosCharsetEncoding _charsetEncoding;
-  bool _useEscAsteriskCommand = false;
+  bool _useEscAsteriskCommand = true;
 
   /// Create constructor of EscPosPrinterCommands
   /// @param [_printerConnection] an instance of a class which implement DeviceConnection
