@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'dart:math' as math;
+
 import 'package:example/int_extension.dart';
 import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:youprint/youprint.dart';
 
 void main() {
@@ -100,12 +104,6 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    // final ReceiptSectionText receiptSectionText = ReceiptSectionText();
-    // receiptSectionText.addSpacer();
-    // // receiptSectionText.addLeftRightText("TrailID", "202309X001695178");
-    // receiptSectionText.addLeftRightText("TrailID", "202309X001695178604015");
-    // await _youprint.printReceiptText(receiptSectionText);
-
     /// Example for Print Image
     final ByteData logoBytes = await rootBundle.load(
       'assets/logo.png',
@@ -114,135 +112,102 @@ class _MyHomePageState extends State<MyHomePage> {
     /// Example for Print Text
     final ReceiptSectionText receiptText = ReceiptSectionText();
 
-    // if (useLogo) {
-    //   receiptText.addImage(
-    //     base64.encode(Uint8List.view(logoBytes.buffer)),
-    //     width: 150,
-    //   );
-    //   receiptText.addSpacer();
-    // }
-    //
-    // /// Merchant name
-    // receiptText.addText(
-    //   'MY STORE',
-    //   size: ReceiptTextSizeType.large,
-    // );
-    //
-    // receiptText.addText(
-    //   'Wisma 46, Jakarta, Indonesia',
-    //   size: ReceiptTextSizeType.small,
-    // );
-    //
-    // receiptText.addSpacer();
-    //
-    // receiptText.addLeftRightText('No. Order', '10');
-    //
-    // receiptText.addSpacer(useDashed: true);
-    // receiptText.addLeftRightText(
-    //   'Waktu',
-    //   DateFormat('H:mm, dd/MM/yy').format(DateTime.now().toLocal()),
-    // );
-    // receiptText.addSpacer(useDashed: true);
-    // int totalAmount = 0;
-    // for (int i = 0; i < totalItems; i++) {
-    //   final qty = math.Random().nextInt(50);
-    //
-    //   CartItem cartItem;
-    //   if (i == 5) {
-    //     cartItem = CartItem(
-    //       name: "Ini ceritanya nama item yang panjang banget",
-    //       quantity: qty,
-    //       price: 1000,
-    //     );
-    //   } else {
-    //     cartItem = CartItem(
-    //       name: "Item ${i + 1}",
-    //       quantity: qty,
-    //       price: 1000,
-    //     );
-    //   }
-    //
-    //   receiptText.addText(cartItem.name, alignment: ReceiptAlignment.left);
-    //   receiptText.addLeftRightText(
-    //     cartItem.qtyPrice,
-    //     cartItem.totalPrice.inIDR,
-    //     leftSize: ReceiptTextSizeType.small,
-    //   );
-    //   totalAmount += cartItem.totalPrice;
-    // }
-    //
-    // receiptText.addSpacer(useDashed: true);
-    // receiptText.addLeftRightText(
-    //   'Total',
-    //   totalAmount.inIDR,
-    //   rightStyle: ReceiptTextStyleType.bold,
-    // );
-    // receiptText.addSpacer(useDashed: true);
-    // receiptText.addLeftRightText(
-    //   'Payment',
-    //   'Cash',
-    //   leftStyle: ReceiptTextStyleType.normal,
-    //   rightStyle: ReceiptTextStyleType.normal,
-    // );
-    // receiptText.addSpacer(count: 2);
+    if (useLogo) {
+      receiptText.addImage(
+        base64.encode(Uint8List.view(logoBytes.buffer)),
+        width: 150,
+      );
+      receiptText.addSpacer();
+    }
 
-    receiptText.addLeftRightText("Trail ID coba dulu ya", "123456789123456");
+    /// Merchant name
     receiptText.addText(
+      'MY STORE',
+      size: ReceiptTextSizeType.large,
+      style: ReceiptTextStyleType.bold,
+    );
+
+    receiptText.addText(
+      'Wisma 46, Jakarta, Indonesia',
+      size: ReceiptTextSizeType.small,
+    );
+
+    receiptText.addSpacer();
+
+    receiptText.addLeftRightText('No. Order', '10');
+
+    receiptText.addSpacer(useDashed: true);
+    receiptText.addLeftRightText(
+      'Waktu',
+      DateFormat('H:mm, dd/MM/yy').format(DateTime.now().toLocal()),
+    );
+    receiptText.addSpacer(useDashed: true);
+    int totalAmount = 0;
+    for (int i = 0; i < totalItems; i++) {
+      final qty = math.Random().nextInt(50);
+
+      CartItem cartItem;
+      if (i == 5) {
+        cartItem = CartItem(
+          name: "Ini ceritanya nama item yang panjang banget",
+          quantity: qty,
+          price: 1000,
+        );
+      } else {
+        cartItem = CartItem(
+          name: "Item ${i + 1}",
+          quantity: qty,
+          price: 1000,
+        );
+      }
+
+      receiptText.addText(cartItem.name,
+          alignment: ReceiptAlignment.left, style: ReceiptTextStyleType.bold);
+      receiptText.addLeftRightText(
+        cartItem.qtyPrice,
+        cartItem.totalPrice.inIDR,
+        leftSize: ReceiptTextSizeType.small,
+      );
+      totalAmount += cartItem.totalPrice;
+    }
+
+    receiptText.addSpacer(useDashed: true);
+    receiptText.addLeftRightText(
+      'Total',
+      totalAmount.inIDR,
+      rightStyle: ReceiptTextStyleType.bold,
+    );
+    receiptText.addSpacer(useDashed: true);
+    receiptText.addLeftRightText(
+      'Payment',
+      'Cash',
+      leftStyle: ReceiptTextStyleType.normal,
+      rightStyle: ReceiptTextStyleType.normal,
+    );
+    receiptText.addSpacer(count: 2);
+
+    final ReceiptSectionText receiptSectionText = ReceiptSectionText();
+
+    receiptSectionText.addLeftRightText("TrailID", "123219321312321555");
+    receiptSectionText.addText(
       'Jl. Kenangan yang ceritanya panjang banget sampe gak muat nih satu baris, Indonesia',
       alignment: ReceiptAlignment.center,
     );
 
-    await _youprint.printReceiptText(receiptText, feedCount: 1);
+    // await _youprint.printReceiptText(receiptText, feedCount: 1);
 
-    // if (useQR) {
-    //   /// Example for print QR
-    //   await _youprint.printQR('www.youtap.id', size: 250, feedCount: 1);
-    // }
-    //
-    // if (useBarcode) {
-    //   final ReceiptSectionText receiptSecondText = ReceiptSectionText();
-    //   receiptSecondText.addSpacer();
-    //   receiptSecondText.addBarcode('1234567890', size: 400);
-    //   await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
-    // }
+    if (useQR) {
+      /// Example for print QR
+      await _youprint.printQR('www.youtap.id', size: 250, feedCount: 1);
+    }
+
+    if (useBarcode) {
+      final ReceiptSectionText receiptSecondText = ReceiptSectionText();
+      receiptSecondText.addSpacer();
+      receiptSecondText.addBarcode('831254784551', size: 400);
+      await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
+    }
   }
-  // final DeviceConnection deviceConnection = DeviceConnection();
-  // final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
-  // final ByteData logoBytes = await rootBundle.load('assets/logo.png');
-  // final resize = img.copyResize(img.decodeImage(logoBytes.buffer.asUint8List())!, width: 150);
-  // StringBuffer bufferText = StringBuffer()
-  //   ..write("[C]<img>")
-  //   ..write(PrinterTextParserImg.imageToHexadecimalString(escPosPrinter, resize, false))
-  //   ..write("</img>\n")
-  //   ..write("[C]<u><font size='big'>ORDER N045</font></u>\n")
-  //   ..write("[C]\n")
-  //   ..write("[C]================================\n")
-  //   ..write("[L]\n")
-  //   ..write("[L]<b>BEAUTIFUL SHIRT</b>[R]9.99€\n")
-  //   ..write("[L]  + Size : S\n")
-  //   ..write("[L]\n")
-  //   ..write("[L]<b>AWESOME HAT</b>[R]24.99€\n")
-  //   ..write("[L]  + Size : 57/58\n")
-  //   ..write("[L]\n")
-  //   ..write("[C]--------------------------------\n")
-  //   ..write("[R]TOTAL PRICE :[R]34.98€\n")
-  //   ..write("[R]TAX :[R]4.23€\n")
-  //   ..write("[L]\n")
-  //   ..write("[C]================================\n")
-  //   ..write("[L]\n")
-  //   ..write("[L]<u><font color='bg-black' size='tall'>Customer :</font></u>\n")
-  //   ..write("[L]Raymond DUPONT\n")
-  //   ..write("[L]5 rue des girafes\n")
-  //   ..write("[L]31547 PERPETES\n")
-  //   ..write("[L]Tel : +33801201456\n")
-  //   ..write("[L]\n")
-  //   ..write("[C]<barcode type='ean13' height='10'>831254784551</barcode>\n")
-  //   ..write("[L]\n")
-  //   ..write("[C]<qrcode>youtap.id</qrcode>\n");
-  // escPosPrinter.addTextToPrint(bufferText.toString());
-  // final bytes = await escPosPrinter.parsedToBytes();
-  // await Fluetooth().sendBytes(bytes);
-  // await Fluetooth().sendBytes(EscPosPrinterCommands.printQRCode());
 
   @override
   Widget build(BuildContext context) {

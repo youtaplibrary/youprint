@@ -22,10 +22,7 @@ class ReceiptTextStyle {
   /// Tag p for normal text, b for bold text and span for left right text
   /// This getter to get tag of text used
   String get textStyleContent {
-    if (useSpan) {
-      return type == ReceiptTextStyleType.normal ? 'font' : 'font';
-    }
-    return type == ReceiptTextStyleType.normal ? 'font' : 'font';
+    return 'font';
   }
 
   /// This getter to get style of alignment text

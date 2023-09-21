@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:youprint/src/extensions/string_extension.dart';
+import 'package:youprint/src/youprint.dart';
 
 import 'receipt_text_style.dart';
 import 'receipt_text_style_type.dart';
@@ -24,39 +25,36 @@ class ReceiptTextLeftRight {
   final ReceiptTextStyle leftTextStyle;
   final ReceiptTextStyle rightTextStyle;
 
+  String _formattedLine(
+    String label,
+    String text,
+    ReceiptTextStyle textStyle, {
+    bool useNewLine = false,
+  }) {
+    return '[$label]<${textStyle.textStyleContent} ${textStyle.textSizeContent}>$text</${textStyle.textStyleContent}>${useNewLine ? '\n' : ''}';
+  }
+
   String get content {
-    StringBuffer stringBuffer = StringBuffer();
-    final leftMultiLine = leftText.splitByLength(15);
-    final rightMultiLine = rightText.splitByLength(15);
+    final int maxCharColumn = (Youprint.printerNbrCharactersPerLine ~/ 2) - 1;
+    final leftMultiLine = leftText.splitByLength(maxCharColumn);
+    final rightMultiLine = rightText.splitByLength(maxCharColumn);
     final maxLine = max(leftMultiLine.length, rightMultiLine.length);
 
-    for (int i = 0; i < maxLine; i++) {
-      if (i > leftMultiLine.length - 1) {
-        String leftLine = '[L]';
-        stringBuffer.write(leftLine);
-      } else {
-        String leftLine = leftMultiLine[i];
-        stringBuffer
-          ..write("[L]")
-          ..write("<${leftTextStyle.textStyleContent} ${leftTextStyle.textSizeContent}>")
-          ..write(leftLine)
-          ..write("</${leftTextStyle.textStyleContent}>");
-      }
+    StringBuffer stringBuffer = StringBuffer();
 
-      if (i > rightMultiLine.length - 1) {
-        String rightLine = '\n';
-        stringBuffer.write(rightLine);
-      } else {
-        String rightLine = rightMultiLine[i];
-        stringBuffer
-          ..write("[R]")
-          ..write("<${rightTextStyle.textStyleContent} ${rightTextStyle.textSizeContent}>")
-          ..write(rightLine)
-          ..write("</${rightTextStyle.textStyleContent}>\n");
-      }
+    for (int i = 0; i < maxLine; i++) {
+      final leftLine = i < leftMultiLine.length
+          ? _formattedLine('L', leftMultiLine[i], leftTextStyle)
+          : _formattedLine('L', '', leftTextStyle);
+
+      final rightLine = i < rightMultiLine.length
+          ? _formattedLine('R', rightMultiLine[i], rightTextStyle, useNewLine: true)
+          : _formattedLine('R', '', rightTextStyle, useNewLine: true);
+
+      stringBuffer.write(leftLine);
+      stringBuffer.write(rightLine);
     }
 
-    print(stringBuffer.toString());
     return stringBuffer.toString();
   }
 }

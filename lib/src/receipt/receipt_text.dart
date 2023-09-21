@@ -17,26 +17,21 @@ class ReceiptText {
   final ReceiptTextStyle textStyle;
   final ReceiptAlignment alignment;
 
+  String _formattedLine(String text) {
+    if (textStyle.type == ReceiptTextStyleType.bold) {
+      return '$_alignmentStyleContent<b><${textStyle.textStyleContent} ${textStyle.textSizeContent}>$text</${textStyle.textStyleContent}></b>\n';
+    }
+    return '$_alignmentStyleContent<${textStyle.textStyleContent} ${textStyle.textSizeContent}>$text</${textStyle.textStyleContent}>\n';
+  }
+
   String get content {
     StringBuffer stringBuffer = StringBuffer();
-    if (alignment == ReceiptAlignment.center) {
-      if (text.length > 32) {
-        final multiLines = text.splitByLength(32);
-        for (String line in multiLines) {
-          stringBuffer
-            ..write(_alignmentStyleContent)
-            ..write("<${textStyle.textStyleContent} ${textStyle.textSizeContent}>")
-            ..write(line)
-            ..write("</${textStyle.textStyleContent}>\n");
-        }
-        return stringBuffer.toString();
-      }
+    final int maxChar = Youprint.printerNbrCharactersPerLine;
+    final multiLines = alignment == ReceiptAlignment.center ? text.splitByLength(maxChar) : [text];
+
+    for (String line in multiLines) {
+      stringBuffer.write(_formattedLine(line));
     }
-    stringBuffer
-      ..write(_alignmentStyleContent)
-      ..write("<${textStyle.textStyleContent} ${textStyle.textSizeContent}>")
-      ..write(text)
-      ..write("</${textStyle.textStyleContent}>\n");
 
     return stringBuffer.toString();
   }
