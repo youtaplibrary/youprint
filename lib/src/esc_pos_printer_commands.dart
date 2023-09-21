@@ -147,7 +147,7 @@ class EscPosPrinterCommands {
 
     try {
       const EncodeHint hint = EncodeHint(characterSet: "UTF-8");
-      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.L, hint);
+      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.M, hint);
       byteMatrix = code.matrix;
     } catch (e) {
       throw const EscPosBarcodeException("Unable to encode QR code");
@@ -335,22 +335,16 @@ class EscPosPrinterCommands {
 
       int commandLength = textBytes.length + 3, pL = commandLength % 256, pH = commandLength ~/ 256;
 
-      /*byte[] qrCodeCommand = new byte[textBytes.length + 7];
-            System.arraycopy(new byte[]{0x1B, 0x5A, 0x00, 0x00, (byte)size, (byte)pL, (byte)pH}, 0, qrCodeCommand, 0, 7);
-            System.arraycopy(textBytes, 0, qrCodeCommand, 7, textBytes.length);
-            this.printerConnection.write(qrCodeCommand);*/
-
       _printerConnection.write([0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, qrCodeType, 0x00]);
       _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, size]);
       _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30]);
 
       Uint8List qrCodeCommand = Uint8List(textBytes.length + 8);
       List<int> qrBytes = [0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30];
-      // System.arraycopy(qrBytes, 0, qrCodeCommand, 0, 8);
-      qrBytes.setRange(0, 8, qrCodeCommand, 0);
+      qrCodeCommand.setRange(0, 8, qrBytes, 0);
 
-      // System.arraycopy(textBytes, 0, qrCodeCommand, 8, textBytes.length);
-      textBytes.setRange(0, textBytes.length, qrCodeCommand, 8);
+      qrCodeCommand.setRange(8, 8 + textBytes.length, textBytes, 0);
+      setAlign(Uint8List.fromList(EscPosPrinterCommands.textAlignCenter));
       _printerConnection.write(qrCodeCommand);
       _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30]);
     } catch (e) {

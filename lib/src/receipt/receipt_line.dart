@@ -9,12 +9,12 @@ class ReceiptLine {
 
   /// Get the tag of html, empty line use <br> and dashed line use <hr>
   /// For loop will generate how much line will printed
-  String get html {
-    String concatHtml = '';
+  String get content {
+    String concatString = '';
     for (int i = 0; i < count; i++) {
-      concatHtml += useDashed ? _dashedLine : _emptyLine;
+      concatString += useDashed ? _dashedLine : _emptyLine;
     }
-    return concatHtml;
+    return concatString;
   }
 
   /// Tag <hr>

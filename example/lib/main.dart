@@ -124,6 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
     receiptText.addText(
       'MY STORE',
       size: ReceiptTextSizeType.large,
+      style: ReceiptTextStyleType.bold,
     );
 
     receiptText.addText(
@@ -160,7 +161,8 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }
 
-      receiptText.addText(cartItem.name, alignment: ReceiptAlignment.left);
+      receiptText.addText(cartItem.name,
+          alignment: ReceiptAlignment.left, style: ReceiptTextStyleType.bold);
       receiptText.addLeftRightText(
         cartItem.qtyPrice,
         cartItem.totalPrice.inIDR,
@@ -184,7 +186,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     receiptText.addSpacer(count: 2);
 
-    await _youprint.printReceiptText(receiptText, feedCount: 1);
+    final ReceiptSectionText receiptSectionText = ReceiptSectionText();
+
+    receiptSectionText.addLeftRightText("TrailID", "123219321312321555");
+    receiptSectionText.addText(
+      'Jl. Kenangan yang ceritanya panjang banget sampe gak muat nih satu baris, Indonesia',
+      alignment: ReceiptAlignment.center,
+    );
+
+    // await _youprint.printReceiptText(receiptText, feedCount: 1);
 
     if (useQR) {
       /// Example for print QR
@@ -194,47 +204,10 @@ class _MyHomePageState extends State<MyHomePage> {
     if (useBarcode) {
       final ReceiptSectionText receiptSecondText = ReceiptSectionText();
       receiptSecondText.addSpacer();
-      receiptSecondText.addBarcode('1234567890', size: 400);
+      receiptSecondText.addBarcode('831254784551', size: 400);
       await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
     }
   }
-  // final DeviceConnection deviceConnection = DeviceConnection();
-  // final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
-  // final ByteData logoBytes = await rootBundle.load('assets/logo.png');
-  // final resize = img.copyResize(img.decodeImage(logoBytes.buffer.asUint8List())!, width: 150);
-  // StringBuffer bufferText = StringBuffer()
-  //   ..write("[C]<img>")
-  //   ..write(PrinterTextParserImg.imageToHexadecimalString(escPosPrinter, resize, false))
-  //   ..write("</img>\n")
-  //   ..write("[C]<u><font size='big'>ORDER N045</font></u>\n")
-  //   ..write("[C]\n")
-  //   ..write("[C]================================\n")
-  //   ..write("[L]\n")
-  //   ..write("[L]<b>BEAUTIFUL SHIRT</b>[R]9.99€\n")
-  //   ..write("[L]  + Size : S\n")
-  //   ..write("[L]\n")
-  //   ..write("[L]<b>AWESOME HAT</b>[R]24.99€\n")
-  //   ..write("[L]  + Size : 57/58\n")
-  //   ..write("[L]\n")
-  //   ..write("[C]--------------------------------\n")
-  //   ..write("[R]TOTAL PRICE :[R]34.98€\n")
-  //   ..write("[R]TAX :[R]4.23€\n")
-  //   ..write("[L]\n")
-  //   ..write("[C]================================\n")
-  //   ..write("[L]\n")
-  //   ..write("[L]<u><font color='bg-black' size='tall'>Customer :</font></u>\n")
-  //   ..write("[L]Raymond DUPONT\n")
-  //   ..write("[L]5 rue des girafes\n")
-  //   ..write("[L]31547 PERPETES\n")
-  //   ..write("[L]Tel : +33801201456\n")
-  //   ..write("[L]\n")
-  //   ..write("[C]<barcode type='ean13' height='10'>831254784551</barcode>\n")
-  //   ..write("[L]\n")
-  //   ..write("[C]<qrcode>youtap.id</qrcode>\n");
-  // escPosPrinter.addTextToPrint(bufferText.toString());
-  // final bytes = await escPosPrinter.parsedToBytes();
-  // await Fluetooth().sendBytes(bytes);
-  // await Fluetooth().sendBytes(EscPosPrinterCommands.printQRCode());
 
   @override
   Widget build(BuildContext context) {

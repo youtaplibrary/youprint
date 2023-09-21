@@ -53,7 +53,7 @@ class ReceiptSectionText {
       ),
       alignment: alignment,
     );
-    _data.add(receiptText.html);
+    _data.add(receiptText.content);
   }
 
   /// Handler tag of text (span or b) and put inside body html
@@ -81,7 +81,7 @@ class ReceiptSectionText {
         size: rightSize,
       ),
     );
-    _data.add(leftRightText.html);
+    _data.add(leftRightText.content);
   }
 
   /// Add new line as empty or dashed line.
@@ -89,12 +89,12 @@ class ReceiptSectionText {
   /// if [useDashed] true line will print as dashed line
   void addSpacer({int count = 1, bool useDashed = false}) {
     final ReceiptLine line = ReceiptLine(count: count, useDashed: useDashed);
-    _data.add(line.html);
+    _data.add(line.content);
   }
 
   void addSpacerPx([int pixels = 1]) {
     final ReceiptPixelSpace space = ReceiptPixelSpace(pixels: pixels);
-    _data.add(space.html);
+    _data.add(space.content);
   }
 
   void addImage(
@@ -107,14 +107,14 @@ class ReceiptSectionText {
       width: width,
       alignment: alignment,
     );
-    _data.add(image.text);
+    _data.add(image.content);
   }
 
   void addQR(String data, {int size = 20}) {
     final ReceiptQR qr = ReceiptQR(
       data,
     );
-    _data.add(qr.text);
+    _data.add(qr.content);
   }
 
   void addBarcode(String data, {int size = 20}) {
@@ -122,6 +122,6 @@ class ReceiptSectionText {
       data,
       size: size,
     );
-    _data.add(barcode.text);
+    _data.add(barcode.content);
   }
 }
