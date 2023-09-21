@@ -113,6 +113,7 @@ class ReceiptSectionText {
   void addQR(String data, {int size = 20}) {
     final ReceiptQR qr = ReceiptQR(
       data,
+      size: size,
     );
     _data.add(qr.content);
   }
