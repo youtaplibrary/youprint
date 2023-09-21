@@ -216,6 +216,8 @@ class Youprint {
     } on Exception catch (error) {
       _isConnected = false;
       _selectedDevice = null;
+      _escPosPrinter.clearTextsToPrint();
+      _escPosPrinter.printerConnection.clearData();
       log('$runtimeType - Error $error');
       return;
     }
