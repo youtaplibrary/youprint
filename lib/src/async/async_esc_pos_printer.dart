@@ -33,6 +33,11 @@ class AsyncEscPosPrinter extends EscPosPrinterSize {
     return this;
   }
 
+  AsyncEscPosPrinter clearTextsToPrint() {
+    textsToPrint = [];
+    return this;
+  }
+
   Future<Uint8List> parsedToBytes({
     int feedCount = 0,
     bool useCut = false,
@@ -61,10 +66,8 @@ class AsyncEscPosPrinter extends EscPosPrinterSize {
         }
       }
     } catch (e) {
-      log('AsyncEscPosPrint: $e');
+      log('$runtimeType - error $e');
     }
-
-    log('${printerConnection.data}');
-    return Uint8List.fromList(printerConnection.data);
+    return printerConnection.getData();
   }
 }

@@ -1,9 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/services.dart';
-import 'package:image/image.dart' as img;
 import 'package:youprint/src/receipt/receipt_image.dart';
 import 'package:youprint/youprint.dart';
 
@@ -17,6 +17,21 @@ class Youprint {
   static Youprint get instance => _instance;
 
   static final PrinterFeatures _printerFeatures = PrinterFeatures();
+
+  static int get printerDpi => 203;
+
+  static double get printerWidthMM => 48.0;
+
+  static int get printerNbrCharactersPerLine => 32;
+
+  static final DeviceConnection _deviceConnection = DeviceConnection();
+
+  static final AsyncEscPosPrinter _escPosPrinter = AsyncEscPosPrinter(
+    _deviceConnection,
+    printerDpi,
+    printerWidthMM,
+    printerNbrCharactersPerLine,
+  );
 
   /// Register printer device name with its features.
   /// Example:
@@ -102,8 +117,7 @@ class Youprint {
     double? textScaleFactor,
     BatchPrintOptions? batchPrintOptions,
   }) async {
-    log(receiptSectionText.getContent());
-
+    log('\n${receiptSectionText.getContent()}');
     final int contentLength = receiptSectionText.contentLength;
 
     final BatchPrintOptions batchOptions = batchPrintOptions ?? BatchPrintOptions.full;
@@ -111,16 +125,14 @@ class Youprint {
     final Iterable<List<Object>> startEndIter = batchOptions.getStartEnd(contentLength);
 
     for (final List<Object> startEnd in startEndIter) {
-      final DeviceConnection deviceConnection = DeviceConnection();
-      final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
       final ReceiptSectionText section = receiptSectionText.getSection(
         startEnd[0] as int,
         startEnd[1] as int,
       );
 
       final bool isEndOfBatch = startEnd[2] as bool;
-      escPosPrinter.addTextToPrint(section.getContent());
-      final bytes = await escPosPrinter.parsedToBytes(
+      _escPosPrinter.addTextToPrint(section.getContent());
+      final bytes = await _escPosPrinter.parsedToBytes(
         feedCount: isEndOfBatch ? feedCount : batchOptions.feedCount,
         useCut: isEndOfBatch ? useCut : batchOptions.useCut,
         openDrawer: openDrawer,
@@ -130,10 +142,8 @@ class Youprint {
     }
   }
 
-  static int pixelToMM(int pixel) {
-    const double inchToMM = 25.4;
-    const double printerDPI = 203;
-    return (pixel * inchToMM / printerDPI).round();
+  static int pxToMM(int pixel) {
+    return (pixel * EscPosPrinterSize.inchToMM / printerDpi).round();
   }
 
   /// This method only for print image with parameter [bytes] in List<int>
@@ -148,16 +158,10 @@ class Youprint {
     bool openDrawer = false,
     PaperSize paperSize = PaperSize.mm58,
   }) async {
-    final DeviceConnection deviceConnection = DeviceConnection();
-    final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
-    final resize = img.copyResize(
-      img.decodeImage(Uint8List.fromList(bytes))!,
-      width: width,
-    );
-    final hexadecimal = PrinterTextParserImg.imageToHexadecimalString(escPosPrinter, resize, false);
-    final ReceiptImage image = ReceiptImage(hexadecimal);
-    escPosPrinter.addTextToPrint(image.text);
-    final bytesResult = await escPosPrinter.parsedToBytes(
+    final base64Image = base64.encode(Uint8List.fromList(bytes));
+    final ReceiptImage image = ReceiptImage(base64Image);
+    _escPosPrinter.addTextToPrint(image.content);
+    final bytesResult = await _escPosPrinter.parsedToBytes(
       feedCount: feedCount,
       useCut: true,
       openDrawer: openDrawer,
@@ -166,10 +170,8 @@ class Youprint {
   }
 
   static String base64toHexadecimal(String data) {
-    final DeviceConnection deviceConnection = DeviceConnection();
-    final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
     final hexadecimal = PrinterTextParserImg.base64ImageToHexadecimalString(
-      escPosPrinter,
+      _escPosPrinter,
       data,
       false,
     );
@@ -187,16 +189,15 @@ class Youprint {
     bool useCut = false,
     bool openDrawer = false,
   }) async {
-    final DeviceConnection deviceConnection = DeviceConnection();
-    final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
     final ReceiptQR qr = ReceiptQR(data, size: size.toInt());
-    escPosPrinter.addTextToPrint(qr.text);
-    final bytes = await escPosPrinter.parsedToBytes(
+    _escPosPrinter.addTextToPrint(qr.content);
+    final bytes = await _escPosPrinter.parsedToBytes(
       feedCount: feedCount,
       useCut: useCut,
       openDrawer: openDrawer,
     );
-    _printProcess(bytes);
+
+    await _printProcess(bytes);
   }
 
   /// Reusable method for print text, image or QR based value [byteBuffer]
@@ -210,151 +211,13 @@ class Youprint {
         return;
       }
       await Fluetooth().sendBytes(byteBuffer);
+      _escPosPrinter.clearTextsToPrint();
+      _escPosPrinter.printerConnection.clearData();
     } on Exception catch (error) {
+      _isConnected = false;
+      _selectedDevice = null;
       log('$runtimeType - Error $error');
+      return;
     }
   }
-
-  // /// This method to convert byte from [data] into as image canvas.
-  // /// It will automatically set width and height based [paperSize].
-  // /// [customWidth] to print image with specific width
-  // /// [feedCount] to generate byte buffer as feed in receipt.
-  // /// [useCut] to cut of receipt layout as byte buffer.
-  // Future<List<int>> _getBytes(
-  //   List<int> data, {
-  //   PaperSize paperSize = PaperSize.mm58,
-  //   int customWidth = 0,
-  //   int feedCount = 0,
-  //   bool useCut = false,
-  //   bool useRaster = false,
-  //   bool openDrawer = false,
-  // }) async {
-  //   List<int> bytes = <int>[];
-  //   final CapabilityProfile profile = await CapabilityProfile.load();
-  //   final Generator generator = Generator(paperSize, profile);
-  //   final img.Image _resize = img.copyResize(
-  //     img.decodeImage(data)!,
-  //     width: customWidth > 0 ? customWidth : paperSize.width,
-  //   );
-  //   final bool canFullCut = printerHasFeatureOf(
-  //     _selectedDevice!.name,
-  //     PrinterFeature.paperFullCut,
-  //   );
-  //   if (openDrawer) {
-  //     bytes += generator.drawer();
-  //   }
-  //   if (useRaster) {
-  //     bytes += generator.imageRaster(_resize);
-  //   } else {
-  //     bytes += generator.image(_resize);
-  //   }
-  //   if (feedCount > 0) {
-  //     bytes += generator.feed(feedCount);
-  //   }
-  //   if (useCut && canFullCut) {
-  //     bytes += generator.cut();
-  //   }
-  //   return bytes;
-  // }
-
-  /// This method to convert byte from [data] into as image canvas.
-  /// It will automatically set width and height based [paperSize].
-  /// [customWidth] to print image with specific width
-  /// [feedCount] to generate byte buffer as feed in receipt.
-  /// [useCut] to cut of receipt layout as byte buffer.
-  // Future<List<int>> _getBytesFromEscPos(
-  //   List<int> data, {
-  //   PaperSize paperSize = PaperSize.mm58,
-  //   int customWidth = 0,
-  //   int feedCount = 0,
-  //   bool useCut = false,
-  //   bool openDrawer = false,
-  //   bool isQR = false,
-  // }) async {
-  //   List<int> bytes = data;
-  //   // final CapabilityProfile profile = await CapabilityProfile.load();
-  //   // final Generator generator = Generator(paperSize, profile);
-  //   //
-  //   // if (isQR) {
-  //   //   bytes = <int>[];
-  //   //   final img.Image _resize = img.copyResize(
-  //   //     img.decodeImage(data)!,
-  //   //     width: customWidth > 0 ? customWidth : paperSize.width,
-  //   //   );
-  //   //   bytes += generator.image(_resize);
-  //   // }
-  //
-  //   final bool canFullCut = printerHasFeatureOf(
-  //     _selectedDevice!.name,
-  //     PrinterFeature.paperFullCut,
-  //   );
-  //   if (openDrawer) {
-  //     bytes += generator.drawer();
-  //   }
-  //   if (feedCount > 0) {
-  //     bytes += generator.feed(feedCount);
-  //   }
-  //   if (useCut && canFullCut) {
-  //     bytes += generator.cut();
-  //   }
-  //   return bytes;
-  // }
-
-  /// Handler to generate QR image from [text] and set the [size].
-  /// Using painter and convert to [Image] object and return as [Uint8List]
-  // Future<Uint8List> _getQRImage(String text, double size) async {}
-
-  //
-  // static Future<String?> getImageHexadecimal({
-  //   required String content,
-  //   int? width,
-  // }) async {
-  //   final Map<String, dynamic> arguments = <String, dynamic>{
-  //     'content': content,
-  //     'width': width,
-  //   };
-  //   String? results;
-  //   try {
-  //     results = await _channel.invokeMethod<String>('convertImageToHexadecimal', arguments);
-  //   } on Exception catch (e) {
-  //     log('[method:parserTextToBytes]: $e');
-  //     throw Exception('Error: $e');
-  //   }
-  //   return results;
-  // }
-  //
-  // /// Converts HTML content to bytes
-  // ///
-  // /// [content] the html text
-  // ///
-  // /// [duration] the delay duration before converting the html to bytes.
-  // /// defaults to 0.
-  // ///
-  // /// [textScaleFactor] the text scale factor (must be > 0 or null).
-  // /// note that this currently only works on Android.
-  // /// defaults to system's font settings.
-  // static Future<Uint8List> contentToImage({
-  //   required String content,
-  //   double duration = 0,
-  //   double? textScaleFactor,
-  // }) async {
-  //   assert(
-  //     textScaleFactor == null || textScaleFactor > 0,
-  //     '`textScaleFactor` must be either null or more than zero.',
-  //   );
-  //   final Map<String, dynamic> arguments = <String, dynamic>{
-  //     'content': content,
-  //     'duration': Platform.isIOS ? 2000 : duration,
-  //     'textScaleFactor': textScaleFactor,
-  //   };
-  //   Uint8List results = Uint8List.fromList(<int>[]);
-  //   try {
-  //     results =
-  //         await _channel.invokeMethod('contentToImage', arguments) ?? Uint8List.fromList(<int>[]);
-  //   } on Exception catch (e) {
-  //     log('[method:contentToImage]: $e');
-  //     throw Exception('Error: $e');
-  //   }
-  //   return results;
-  // }
 }

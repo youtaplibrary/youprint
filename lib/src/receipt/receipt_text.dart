@@ -1,8 +1,7 @@
+import 'package:youprint/youprint.dart';
+
 import 'collection_style.dart';
-import 'receipt_alignment.dart';
-import 'receipt_text_size_type.dart';
 import 'receipt_text_style.dart';
-import 'receipt_text_style_type.dart';
 
 class ReceiptText {
   ReceiptText(
@@ -18,10 +17,26 @@ class ReceiptText {
   final ReceiptTextStyle textStyle;
   final ReceiptAlignment alignment;
 
-  String get html =>
-      '$_alignmentStyleHTML<${textStyle.textStyleHTML} ${textStyle.textSizeHtml}>$text</${textStyle.textStyleHTML}>\n';
+  String _formattedLine(String text) {
+    if (textStyle.type == ReceiptTextStyleType.bold) {
+      return '$_alignmentStyleContent<b><${textStyle.textStyleContent} ${textStyle.textSizeContent}>$text</${textStyle.textStyleContent}></b>\n';
+    }
+    return '$_alignmentStyleContent<${textStyle.textStyleContent} ${textStyle.textSizeContent}>$text</${textStyle.textStyleContent}>\n';
+  }
 
-  String get _alignmentStyleHTML {
+  String get content {
+    StringBuffer stringBuffer = StringBuffer();
+    final int maxChar = Youprint.printerNbrCharactersPerLine;
+    final multiLines = alignment == ReceiptAlignment.center ? text.splitByLength(maxChar) : [text];
+
+    for (String line in multiLines) {
+      stringBuffer.write(_formattedLine(line));
+    }
+
+    return stringBuffer.toString();
+  }
+
+  String get _alignmentStyleContent {
     if (alignment == ReceiptAlignment.left) {
       return CollectionStyle.textLeft;
     } else if (alignment == ReceiptAlignment.right) {
