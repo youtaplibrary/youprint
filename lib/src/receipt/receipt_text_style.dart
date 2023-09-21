@@ -33,7 +33,7 @@ class ReceiptTextStyle {
       case ReceiptTextSizeType.medium:
         return "size='normal'";
       case ReceiptTextSizeType.large:
-        return "size='wide'";
+        return "size='normal'";
       case ReceiptTextSizeType.extraLarge:
         return "size='wide'";
       default:

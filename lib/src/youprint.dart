@@ -170,10 +170,8 @@ class Youprint {
   }
 
   static String base64toHexadecimal(String data) {
-    final DeviceConnection deviceConnection = DeviceConnection();
-    final AsyncEscPosPrinter escPosPrinter = AsyncEscPosPrinter(deviceConnection, 203, 48.0, 32);
     final hexadecimal = PrinterTextParserImg.base64ImageToHexadecimalString(
-      escPosPrinter,
+      _escPosPrinter,
       data,
       false,
     );
@@ -216,7 +214,10 @@ class Youprint {
       _escPosPrinter.clearTextsToPrint();
       _escPosPrinter.printerConnection.clearData();
     } on Exception catch (error) {
+      _isConnected = false;
+      _selectedDevice = null;
       log('$runtimeType - Error $error');
+      return;
     }
   }
 }
