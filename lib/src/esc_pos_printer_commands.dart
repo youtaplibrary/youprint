@@ -147,7 +147,7 @@ class EscPosPrinterCommands {
 
     try {
       const EncodeHint hint = EncodeHint(characterSet: "UTF-8");
-      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.M, hint);
+      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.L, hint);
       byteMatrix = code.matrix;
     } catch (e) {
       throw const EscPosBarcodeException("Unable to encode QR code");
@@ -157,6 +157,7 @@ class EscPosPrinterCommands {
       return EscPosPrinterCommands.initGSv0Command(0, 0);
     }
 
+    size = size > 256 ? (203 / 25.4 * 48.0).round() : size;
     int width = byteMatrix.width,
         height = byteMatrix.height,
         coefficient = (size / width).round(),
@@ -200,6 +201,14 @@ class EscPosPrinterCommands {
   }
 
   static Uint8List imageToBytes(Image image, bool gradient) {
+    int width = (203 / 25.4 * 48.0).round(); // printeraWidth 58mm , 80mm ...
+    int ratio = (image.width * 1.0 / width).round();
+    int height = (image.height / ratio).round();
+
+    if (image.width > 256 || image.height > 256) {
+      image = copyResize(image, width: width, height: height);
+    }
+
     int imageWidth = image.width, imageHeight = image.height, bytesByLine = (imageWidth / 8).ceil();
     Uint8List imageBytes = EscPosPrinterCommands.initGSv0Command(bytesByLine, imageHeight);
     int i = 8, greyscaleCoefficientInit = 0, gradientStep = 6;
