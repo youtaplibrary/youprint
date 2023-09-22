@@ -42,8 +42,7 @@ class EscPosPrinterSize {
     }
 
     if (isSizeEdit) {
-      image = Image.fromBytes(bitmapWidth, bitmapHeight, image.data);
-      // image = Image.fromResized(image, width: bitmapWidth, height: bitmapHeight);
+      image = copyResize(image, width: bitmapWidth, height: bitmapHeight);
     }
 
     return EscPosPrinterCommands.imageToBytes(image, gradient);
