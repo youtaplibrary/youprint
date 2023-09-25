@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
 import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:youprint/youprint.dart';
 
 void main() {
@@ -104,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     /// Example for Print Image
     final ByteData logoBytes = await rootBundle.load(
-      'assets/logo.png',
+      'assets/image.png',
     );
 
     /// Example for Print Text
@@ -119,78 +121,72 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     /// Merchant name
-    // receiptText.addText(
-    //   'MY STORE',
-    //   size: ReceiptTextSizeType.large,
-    //   style: ReceiptTextStyleType.bold,
-    // );
-    //
-    // receiptText.addText(
-    //   'Wisma 46, Jakarta, Indonesia',
-    //   size: ReceiptTextSizeType.small,
-    // );
-    //
-    // receiptText.addSpacer();
-    //
-    // receiptText.addLeftRightText('No. Order', '10');
-    //
-    // receiptText.addSpacer(useDashed: true);
-    // receiptText.addLeftRightText(
-    //   'Waktu',
-    //   DateFormat('H:mm, dd/MM/yy').format(DateTime.now().toLocal()),
-    // );
-    // receiptText.addSpacer(useDashed: true);
-    // int totalAmount = 0;
-    // for (int i = 0; i < totalItems; i++) {
-    //   final qty = math.Random().nextInt(50);
-    //
-    //   CartItem cartItem;
-    //   if (i == 5) {
-    //     cartItem = CartItem(
-    //       name: "Ini ceritanya nama item yang panjang banget",
-    //       quantity: qty,
-    //       price: 1000,
-    //     );
-    //   } else {
-    //     cartItem = CartItem(
-    //       name: "Item ${i + 1}",
-    //       quantity: qty,
-    //       price: 1000,
-    //     );
-    //   }
-    //
-    //   receiptText.addText(cartItem.name,
-    //       alignment: ReceiptAlignment.left, style: ReceiptTextStyleType.bold);
-    //   receiptText.addLeftRightText(
-    //     cartItem.qtyPrice,
-    //     cartItem.totalPrice.inIDR,
-    //     leftSize: ReceiptTextSizeType.small,
-    //   );
-    //   totalAmount += cartItem.totalPrice;
-    // }
-    //
-    // receiptText.addSpacer(useDashed: true);
-    // receiptText.addLeftRightText(
-    //   'Total',
-    //   totalAmount.inIDR,
-    //   rightStyle: ReceiptTextStyleType.bold,
-    // );
-    // receiptText.addSpacer(useDashed: true);
-    // receiptText.addLeftRightText(
-    //   'Payment',
-    //   'Cash',
-    //   leftStyle: ReceiptTextStyleType.normal,
-    //   rightStyle: ReceiptTextStyleType.normal,
-    // );
-    // receiptText.addSpacer(count: 2);
-    //
-    // final ReceiptSectionText receiptSectionText = ReceiptSectionText();
-    //
-    // receiptSectionText.addLeftRightText("TrailID", "123219321312321555");
-    // receiptSectionText.addText(
-    //   'Jl. Kenangan yang ceritanya panjang banget sampe gak muat nih satu baris, Indonesia',
-    //   alignment: ReceiptAlignment.center,
-    // );
+    receiptText.addText(
+      'MY STORE',
+      size: ReceiptTextSizeType.large,
+      style: ReceiptTextStyleType.bold,
+    );
+
+    receiptText.addText(
+      'Wisma 46, Jakarta, Indonesia',
+      size: ReceiptTextSizeType.small,
+    );
+
+    receiptText.addSpacer();
+
+    receiptText.addLeftRightText('No. Order', '10');
+
+    receiptText.addSpacer(useDashed: true);
+    receiptText.addLeftRightText(
+      'Waktu',
+      DateFormat('H:mm, dd/MM/yy').format(DateTime.now().toLocal()),
+    );
+    receiptText.addSpacer(useDashed: true);
+    int totalAmount = 0;
+    for (int i = 0; i < totalItems; i++) {
+      final qty = math.Random().nextInt(50);
+
+      CartItem cartItem;
+      if (i == 5) {
+        cartItem = CartItem(
+          name: "Ini ceritanya nama item yang panjang banget",
+          quantity: qty,
+          price: 1000,
+        );
+      } else {
+        cartItem = CartItem(
+          name: "Item ${i + 1}",
+          quantity: qty,
+          price: 1000,
+        );
+      }
+
+      receiptText.addText(
+        cartItem.name,
+        alignment: ReceiptAlignment.left,
+        style: ReceiptTextStyleType.bold,
+      );
+      receiptText.addLeftRightText(
+        cartItem.qtyPrice,
+        cartItem.totalPrice.inIDR,
+        leftSize: ReceiptTextSizeType.small,
+      );
+      totalAmount += cartItem.totalPrice;
+    }
+
+    receiptText.addSpacer(useDashed: true);
+    receiptText.addLeftRightText(
+      'Total',
+      totalAmount.inIDR,
+      rightStyle: ReceiptTextStyleType.bold,
+    );
+    receiptText.addSpacer(useDashed: true);
+    receiptText.addLeftRightText(
+      'Payment',
+      'Cash',
+      leftStyle: ReceiptTextStyleType.normal,
+      rightStyle: ReceiptTextStyleType.normal,
+    );
 
     await _youprint.printReceiptText(receiptText, feedCount: 1);
 
@@ -203,12 +199,12 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    // if (useBarcode) {
-    //   final ReceiptSectionText receiptSecondText = ReceiptSectionText();
-    //   receiptSecondText.addSpacer();
-    //   receiptSecondText.addBarcode('831254784551', size: 400);
-    //   await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
-    // }
+    if (useBarcode) {
+      final ReceiptSectionText receiptSecondText = ReceiptSectionText();
+      receiptSecondText.addSpacer();
+      receiptSecondText.addBarcode('831254784551', size: 400);
+      await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
+    }
   }
 
   @override

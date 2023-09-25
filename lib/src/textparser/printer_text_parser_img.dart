@@ -8,6 +8,7 @@ import 'package:youprint/youprint.dart';
 class PrinterTextParserImg implements PrinterTextParserElement {
   int _length = 0;
   Uint8List _image = Uint8List(0);
+  List<int> _align = [];
 
   PrinterTextParserImg(
     PrinterTextParserColumn printerTextParserColumn,
@@ -32,16 +33,19 @@ class PrinterTextParserImg implements PrinterTextParserElement {
         nbrByteDiff = ((printer.getPrinterWidthPx - width) / 8).floor(),
         nbrWhiteByteToInsert = 0;
 
+    _align = EscPosPrinterCommands.textAlignLeft;
     switch (textAlign) {
       case PrinterTextParser.tagsAlignCenter:
         nbrWhiteByteToInsert = (nbrByteDiff / 2).round();
+        _align = EscPosPrinterCommands.textAlignCenter;
         break;
       case PrinterTextParser.tagsAlignRight:
         nbrWhiteByteToInsert = nbrByteDiff;
+        _align = EscPosPrinterCommands.textAlignRight;
         break;
     }
 
-    // nbrWhiteByteToInsert = 0;
+    nbrWhiteByteToInsert = 0;
     if (nbrWhiteByteToInsert > 0) {
       int newByteWidth = byteWidth + nbrWhiteByteToInsert;
       Uint8List newImage = EscPosPrinterCommands.initGSv0Command(newByteWidth, height);
@@ -79,7 +83,7 @@ class PrinterTextParserImg implements PrinterTextParserElement {
     return PrinterTextParserImg.bytesToHexadecimalString(printerSize.imageToBytes(image, gradient));
   }
 
-  static String bytesToHexadecimalString(Uint8List bytes) {
+  static String bytesToHexadecimalString(List<int> bytes) {
     StringBuffer imageHexString = StringBuffer();
     for (int aByte in bytes) {
       String hexString = (aByte & 0xFF).toRadixString(16).padLeft(2, '0');
@@ -102,7 +106,10 @@ class PrinterTextParserImg implements PrinterTextParserElement {
 
   @override
   PrinterTextParserImg print(EscPosPrinterCommands printerSocket) {
-    printerSocket.printImage(_image);
+    printerSocket
+        .setAlign(Uint8List.fromList(_align))
+        .printImage(_image)
+        .setAlign(Uint8List.fromList(EscPosPrinterCommands.textAlignLeft));
     return this;
   }
 }

@@ -68,6 +68,8 @@ class AsyncEscPosPrinter extends EscPosPrinterSize {
     } catch (e) {
       log('$runtimeType - error $e');
     }
+
+    log('${printerConnection.getData()}');
     return printerConnection.getData();
   }
 }
