@@ -76,7 +76,7 @@ class ReceiptSectionText {
         size: leftSize,
       ),
       rightTextStyle: ReceiptTextStyle(
-        type: leftStyle,
+        type: rightStyle,
         useSpan: true,
         size: rightSize,
       ),

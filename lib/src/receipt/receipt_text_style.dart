@@ -26,7 +26,7 @@ class ReceiptTextStyle {
       case ReceiptTextStyleType.normal:
         return 'font';
       case ReceiptTextStyleType.bold:
-        return 'font';
+        return 'b';
     }
   }
 
