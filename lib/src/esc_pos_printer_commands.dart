@@ -159,7 +159,8 @@ class EscPosPrinterCommands {
       return EscPosPrinterCommands.initGSv0Command(0, 0);
     }
 
-    size = size > 256 ? (203 / 25.4 * 48.0).round() : size;
+    // 384 (48mm * 8) is max printer width pixel for paper 58mm
+    size = size > 384 ? 384 : size;
     int width = byteMatrix.width,
         height = byteMatrix.height,
         coefficient = (size / width).round(),

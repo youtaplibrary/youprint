@@ -62,14 +62,18 @@ class ReceiptSectionText {
   void addLeftRightText(
     String leftText,
     String rightText, {
+    String prefixText = '',
     ReceiptTextStyleType leftStyle = ReceiptTextStyleType.normal,
     ReceiptTextStyleType rightStyle = ReceiptTextStyleType.normal,
     ReceiptTextSizeType leftSize = ReceiptTextSizeType.medium,
     ReceiptTextSizeType rightSize = ReceiptTextSizeType.medium,
+    ReceiptTextStyleType prefixTextStyle = ReceiptTextStyleType.normal,
+    int? maxCharLeftText,
   }) {
     final ReceiptTextLeftRight leftRightText = ReceiptTextLeftRight(
       leftText,
       rightText,
+      maxCharLeftText: maxCharLeftText,
       leftTextStyle: ReceiptTextStyle(
         type: leftStyle,
         useSpan: true,
@@ -79,6 +83,12 @@ class ReceiptSectionText {
         type: rightStyle,
         useSpan: true,
         size: rightSize,
+      ),
+      prefixText: prefixText,
+      prefixTextStyle: ReceiptTextStyle(
+        type: prefixTextStyle,
+        useSpan: true,
+        size: leftSize,
       ),
     );
     _data.add(leftRightText.content);
