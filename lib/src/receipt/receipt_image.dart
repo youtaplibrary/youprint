@@ -15,7 +15,7 @@ class ReceiptImage {
   final ReceiptAlignment alignment;
 
   String get content =>
-      "$_alignmentStyle<img size='$width'>${Youprint.base64toHexadecimal(base64)}</img>\n";
+      "$_alignmentStyle<img>${Youprint.base64toHexadecimal(base64, width)}</img>\n";
 
   String get _alignmentStyle {
     if (alignment == ReceiptAlignment.left) {

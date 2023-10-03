@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
 import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:youprint/youprint.dart';
 
 void main() {
@@ -115,96 +113,96 @@ class _MyHomePageState extends State<MyHomePage> {
     if (useLogo) {
       receiptText.addImage(
         base64.encode(Uint8List.view(logoBytes.buffer)),
-        width: 480,
+        width: 180,
       );
       receiptText.addSpacer();
     }
 
     /// Merchant name
-    receiptText.addText(
-      'MY STORE',
-      size: ReceiptTextSizeType.large,
-      style: ReceiptTextStyleType.bold,
-    );
-
-    receiptText.addText(
-      'Wisma 46, Jakarta, Indonesia',
-      size: ReceiptTextSizeType.small,
-    );
-
-    receiptText.addSpacer();
-
-    receiptText.addLeftRightText('No. Order', '10');
-
-    receiptText.addSpacer(useDashed: true);
-    receiptText.addLeftRightText(
-      'Waktu',
-      DateFormat('H:mm, dd/MM/yy').format(DateTime.now().toLocal()),
-    );
-    receiptText.addSpacer(useDashed: true);
-    int totalAmount = 0;
-    for (int i = 0; i < totalItems; i++) {
-      final qty = math.Random().nextInt(50);
-
-      CartItem cartItem;
-      if (i == 5) {
-        cartItem = CartItem(
-          name: "Ini ceritanya nama item yang panjang banget",
-          quantity: qty,
-          price: 1000,
-        );
-      } else {
-        cartItem = CartItem(
-          name: "Item ${i + 1}",
-          quantity: qty,
-          price: 1000,
-        );
-      }
-
-      receiptText.addText(
-        cartItem.name,
-        alignment: ReceiptAlignment.left,
-        style: ReceiptTextStyleType.bold,
-      );
-      receiptText.addLeftRightText(
-        cartItem.qtyPrice,
-        cartItem.totalPrice.inIDR,
-        leftSize: ReceiptTextSizeType.small,
-      );
-      totalAmount += cartItem.totalPrice;
-    }
-
-    receiptText.addSpacer(useDashed: true);
-    receiptText.addLeftRightText(
-      'Total',
-      totalAmount.inIDR,
-      rightStyle: ReceiptTextStyleType.bold,
-    );
-    receiptText.addSpacer(useDashed: true);
-    receiptText.addLeftRightText(
-      'Payment',
-      'Cash',
-      leftStyle: ReceiptTextStyleType.normal,
-      rightStyle: ReceiptTextStyleType.normal,
-    );
+    // receiptText.addText(
+    //   'MY STORE',
+    //   size: ReceiptTextSizeType.large,
+    //   style: ReceiptTextStyleType.bold,
+    // );
+    //
+    // receiptText.addText(
+    //   'Wisma 46, Jakarta, Indonesia',
+    //   size: ReceiptTextSizeType.small,
+    // );
+    //
+    // receiptText.addSpacer();
+    //
+    // receiptText.addLeftRightText('No. Order', '10');
+    //
+    // receiptText.addSpacer(useDashed: true);
+    // receiptText.addLeftRightText(
+    //   'Waktu',
+    //   DateFormat('H:mm, dd/MM/yy').format(DateTime.now().toLocal()),
+    // );
+    // receiptText.addSpacer(useDashed: true);
+    // int totalAmount = 0;
+    // for (int i = 0; i < totalItems; i++) {
+    //   final qty = math.Random().nextInt(50);
+    //
+    //   CartItem cartItem;
+    //   if (i == 5) {
+    //     cartItem = CartItem(
+    //       name: "Ini ceritanya nama item yang panjang banget",
+    //       quantity: qty,
+    //       price: 1000,
+    //     );
+    //   } else {
+    //     cartItem = CartItem(
+    //       name: "Item ${i + 1}",
+    //       quantity: qty,
+    //       price: 1000,
+    //     );
+    //   }
+    //
+    //   receiptText.addText(
+    //     cartItem.name,
+    //     alignment: ReceiptAlignment.left,
+    //     style: ReceiptTextStyleType.bold,
+    //   );
+    //   receiptText.addLeftRightText(
+    //     cartItem.qtyPrice,
+    //     cartItem.totalPrice.inIDR,
+    //     leftSize: ReceiptTextSizeType.small,
+    //   );
+    //   totalAmount += cartItem.totalPrice;
+    // }
+    //
+    // receiptText.addSpacer(useDashed: true);
+    // receiptText.addLeftRightText(
+    //   'Total',
+    //   totalAmount.inIDR,
+    //   rightStyle: ReceiptTextStyleType.bold,
+    // );
+    // receiptText.addSpacer(useDashed: true);
+    // receiptText.addLeftRightText(
+    //   'Payment',
+    //   'Cash',
+    //   leftStyle: ReceiptTextStyleType.normal,
+    //   rightStyle: ReceiptTextStyleType.normal,
+    // );
 
     await _youprint.printReceiptText(receiptText, feedCount: 1);
-
-    if (useQR) {
-      /// Example for print QR
-      await _youprint.printQR(
-        '00020101021226660014ID.LINKAJA.WWW011893600911002144000102151904161014400010303UBE51440014ID.CO.QRIS.WWW02151904161014400010303UBE52041234530336054032605802ID5924Jaya Abadi Cabang Serang6006SERANG6105421716267011823094169531974558207163bfecd4d55ed402c98210212628101155103030116304D44D',
-        size: 480,
-        feedCount: 1,
-      );
-    }
-
-    if (useBarcode) {
-      final ReceiptSectionText receiptSecondText = ReceiptSectionText();
-      receiptSecondText.addSpacer();
-      receiptSecondText.addBarcode('831254784551', size: 400);
-      await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
-    }
+    //
+    // if (useQR) {
+    //   /// Example for print QR
+    //   await _youprint.printQR(
+    //     '00020101021226660014ID.LINKAJA.WWW011893600911002144000102151904161014400010303UBE51440014ID.CO.QRIS.WWW02151904161014400010303UBE52041234530336054032605802ID5924Jaya Abadi Cabang Serang6006SERANG6105421716267011823094169531974558207163bfecd4d55ed402c98210212628101155103030116304D44D',
+    //     size: 400,
+    //     feedCount: 1,
+    //   );
+    // }
+    //
+    // if (useBarcode) {
+    //   final ReceiptSectionText receiptSecondText = ReceiptSectionText();
+    //   receiptSecondText.addSpacer();
+    //   receiptSecondText.addBarcode('202310LDL1696235767846', size: 400);
+    //   await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
+    // }
 
     ReceiptSectionText receiptSectionText = ReceiptSectionText();
     receiptSectionText.addLeftRightText(
@@ -218,6 +216,15 @@ class _MyHomePageState extends State<MyHomePage> {
       'Rp.5500',
       leftStyle: ReceiptTextStyleType.normal,
       rightStyle: ReceiptTextStyleType.normal,
+    );
+    receiptSectionText.addLeftRightText(
+      'Mie Ayam Jamur Special dengan Bakso Sapi Urat tanpa telur',
+      'Rp22.000.000',
+      leftStyle: ReceiptTextStyleType.normal,
+      rightStyle: ReceiptTextStyleType.bold,
+      prefixText: '1x ',
+      prefixTextStyle: ReceiptTextStyleType.bold,
+      maxCharLeftText: 17,
     );
 
     await _youprint.printReceiptText(receiptSectionText, feedCount: 1);

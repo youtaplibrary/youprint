@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -9,10 +10,12 @@ class PrinterTextParserImg implements PrinterTextParserElement {
   int _length = 0;
   Uint8List _image = Uint8List(0);
   List<int> _align = [];
+  int size = 0;
 
   PrinterTextParserImg(
     PrinterTextParserColumn printerTextParserColumn,
-    String textAlign, {
+    String textAlign,
+    HashMap<String, String> imageAttributes, {
     String? hexadecimalString,
     Uint8List? bytes,
   }) {
@@ -69,18 +72,25 @@ class PrinterTextParserImg implements PrinterTextParserElement {
     EscPosPrinterSize printerSize,
     Image image,
     bool gradient,
+    int size,
   ) {
-    return PrinterTextParserImg.bytesToHexadecimalString(printerSize.imageToBytes(image, gradient));
+    final rescaledImage = copyResize(image, width: size);
+    return PrinterTextParserImg.bytesToHexadecimalString(
+      printerSize.imageToBytes(rescaledImage, gradient, size),
+    );
   }
 
   static String base64ImageToHexadecimalString(
     EscPosPrinterSize printerSize,
     String base64Image,
     bool gradient,
+    int size,
   ) {
     final Image? image = decodeImage(base64.decode(base64Image));
     if (image == null) throw const EscPosParserException('Failed to parse base64 to image');
-    return PrinterTextParserImg.bytesToHexadecimalString(printerSize.imageToBytes(image, gradient));
+    return PrinterTextParserImg.bytesToHexadecimalString(
+      printerSize.imageToBytes(copyResize(image, width: size), gradient, size),
+    );
   }
 
   static String bytesToHexadecimalString(List<int> bytes) {

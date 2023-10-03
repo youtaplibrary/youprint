@@ -206,7 +206,7 @@ class EscPosPrinterCommands {
   static List<int> imageToBytes(Image imageSrc) {
     List<int> bytes = [];
 
-    final Image image = Image.from(imageSrc);
+    final Image image = imageSrc;
 
     invert(image);
     flip(image, Flip.horizontal);

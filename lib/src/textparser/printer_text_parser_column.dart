@@ -404,7 +404,8 @@ class PrinterTextParserColumn {
     HashMap<String, String> imageAttributes,
     String hexString,
   ) {
-    appendElement(PrinterTextParserImg(this, textAlign, hexadecimalString: hexString));
+    appendElement(
+        PrinterTextParserImg(this, textAlign, imageAttributes, hexadecimalString: hexString));
   }
 
   void appendBarcode(
