@@ -12,7 +12,7 @@ class PrinterTextParserQRCode extends PrinterTextParserImg {
     String textAlign,
     HashMap<String, String> qrCodeAttributes,
     String data,
-  ) : super(printerTextParserColumn, textAlign,
+  ) : super(printerTextParserColumn, textAlign, qrCodeAttributes,
             bytes: initConstructor(printerTextParserColumn, qrCodeAttributes, data));
 
   static Uint8List initConstructor(

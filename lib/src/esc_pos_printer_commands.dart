@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
 import 'package:youprint/src/barcode/barcode.dart';
 import 'package:youprint/src/esc_pos_charset_encoding.dart';
+import 'package:zxing_lib/common.dart';
 import 'package:zxing_lib/qrcode.dart' as qr;
 import 'package:zxing_lib/zxing.dart';
 
@@ -23,8 +24,10 @@ class EscPosPrinterCommands {
   static const List<int> textWeightNormal = <int>[0x1B, 0x45, 0x00];
   static const List<int> textWeightBold = <int>[0x1B, 0x45, 0x01];
 
+  static const List<int> lineSpacing16 = <int>[0x1b, 0x33, 0x10];
   static const List<int> lineSpacing24 = <int>[0x1b, 0x33, 0x18];
   static const List<int> lineSpacing30 = <int>[0x1b, 0x33, 0x1e];
+  static const List<int> resetLineSpacing = <int>[0x1b, 0x32];
 
   static const List<int> textSizeNormal = <int>[0x1D, 0x21, 0x00];
   static const List<int> textSizeDoubleHeight = <int>[0x1D, 0x21, 0x01];
@@ -64,7 +67,6 @@ class EscPosPrinterCommands {
 
   final DeviceConnection _printerConnection;
   late final EscPosCharsetEncoding _charsetEncoding;
-  bool _useEscAsteriskCommand = false;
 
   /// Create constructor of EscPosPrinterCommands
   /// @param [_printerConnection] an instance of a class which implement DeviceConnection
@@ -105,7 +107,7 @@ class EscPosPrinterCommands {
         imageBytesSize = 6 + bytesByLine * 24;
 
     List<Uint8List> returnedBytes = List.filled(imageLineHeightCount + 2, Uint8List(0));
-    returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing24);
+    returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing16);
     for (int i = 0; i < imageLineHeightCount; ++i) {
       int pxBaseRow = i * 24;
       Uint8List imageBytes = Uint8List(imageBytesSize);
@@ -137,110 +139,159 @@ class EscPosPrinterCommands {
       returnedBytes[i + 1] = imageBytes;
     }
     returnedBytes[returnedBytes.length - 1] = Uint8List.fromList(
-      EscPosPrinterCommands.lineSpacing24,
+      EscPosPrinterCommands.lineSpacing16,
     );
     return returnedBytes;
   }
 
   static Uint8List convertQRCodeToBytes(String data, int size) {
-    qr.ByteMatrix? byteMatrix;
+    qr.QRCodeWriter writer = qr.QRCodeWriter();
+    BitMatrix matrix;
+
+    size = size > 360 ? 360 : size;
 
     try {
-      const EncodeHint hint = EncodeHint(characterSet: "UTF-8");
-      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.M, hint);
-      byteMatrix = code.matrix;
+      matrix = writer.encode(
+        data,
+        BarcodeFormat.qrCode,
+        size,
+        size,
+        const EncodeHint(
+          characterSet: "ISO-8859-1",
+          errorCorrectionLevel: qr.ErrorCorrectionLevel.M,
+        ),
+      );
     } catch (e) {
       throw const EscPosBarcodeException("Unable to encode QR code");
     }
 
-    if (byteMatrix == null) {
-      return EscPosPrinterCommands.initGSv0Command(0, 0);
-    }
-
-    int width = byteMatrix.width,
-        height = byteMatrix.height,
-        coefficient = (size / width).round(),
-        imageWidth = width * coefficient,
-        imageHeight = height * coefficient,
-        bytesByLine = (imageWidth / 8).ceil(),
-        i = 8;
-
-    if (coefficient < 1) {
-      return EscPosPrinterCommands.initGSv0Command(0, 0);
-    }
-
-    Uint8List imageBytes = EscPosPrinterCommands.initGSv0Command(bytesByLine, imageHeight);
-
-    for (int y = 0; y < height; y++) {
-      Uint8List lineBytes = Uint8List(bytesByLine);
-      int x = -1, multipleX = coefficient;
-      bool isBlack = false;
-      for (int j = 0; j < bytesByLine; j++) {
-        int b = 0;
-        for (int k = 0; k < 8; k++) {
-          if (multipleX == coefficient) {
-            isBlack = ++x < width && byteMatrix.get(x, y) == 1;
-            multipleX = 0;
-          }
-          if (isBlack) {
-            b |= 1 << (7 - k);
-          }
-          ++multipleX;
-        }
-        lineBytes[j] = b;
-      }
-
-      for (int multipleY = 0; multipleY < coefficient; ++multipleY) {
-        imageBytes.setRange(i, i + lineBytes.length, lineBytes, 0);
-        i += lineBytes.length;
+    Image image = Image(size, size, channels: Channels.rgb);
+    for (int x = 0; x < size; x++) {
+      for (int y = 0; y < size; y++) {
+        //-16777216 is black -1 is white
+        image.setPixel(x, y, matrix.get(x, y) ? -16777216 : -1);
       }
     }
 
-    return imageBytes;
+    return Uint8List.fromList(imageToBytes(image));
   }
 
-  static Uint8List imageToBytes(Image image, bool gradient) {
-    int imageWidth = image.width, imageHeight = image.height, bytesByLine = (imageWidth / 8).ceil();
-    Uint8List imageBytes = EscPosPrinterCommands.initGSv0Command(bytesByLine, imageHeight);
-    int i = 8, greyscaleCoefficientInit = 0, gradientStep = 6;
+  static List<int> imageToBytes(Image imageSrc) {
+    List<int> bytes = [];
 
-    double colorLevelStep = 765.0 / (15 * gradientStep + gradientStep - 1);
+    final Image image = Image.from(imageSrc);
 
-    for (int posY = 0; posY < imageHeight; posY++) {
-      int greyscaleCoefficient = greyscaleCoefficientInit, greyscaleLine = posY % gradientStep;
-      for (int j = 0; j < imageWidth; j += 8) {
-        int b = 0;
-        for (int k = 0; k < 8; k++) {
-          int posX = j + k;
-          if (posX < imageWidth) {
-            // Pixel pixel = image.getPixel(posX, posY);
-            int color = image.getPixel(posX, posY),
-                red = (color >> 16) & 255,
-                green = (color >> 8) & 255,
-                blue = color & 255;
-            if ((gradient &&
-                    (red + green + blue) <
-                        ((greyscaleCoefficient * gradientStep + greyscaleLine) * colorLevelStep)) ||
-                (!gradient && (red < 160 || green < 160 || blue < 160))) {
-              b |= 1 << (7 - k);
-            }
+    invert(image);
+    flip(image, Flip.horizontal);
+    final Image imageRotated = copyRotate(image, 270);
 
-            greyscaleCoefficient += 5;
-            if (greyscaleCoefficient > 15) {
-              greyscaleCoefficient -= 16;
-            }
-          }
-        }
-        imageBytes[i++] = b;
-      }
+    // height vertical density use 1 for low
+    const int lineHeight = 3;
+    final List<List<int>> blobs = _toColumnFormat(imageRotated, lineHeight * 8);
 
-      greyscaleCoefficientInit += 2;
-      if (greyscaleCoefficientInit > 15) {
-        greyscaleCoefficientInit = 0;
-      }
+    // Compress according to line density
+    // Line height contains 8 or 24 pixels of src image
+    // Each blobs[i] contains greyscale bytes [0-255]
+    // const int pxPerLine = 24 ~/ lineHeight;
+    for (int blobInd = 0; blobInd < blobs.length; blobInd++) {
+      blobs[blobInd] = _packBitsIntoBytes(blobs[blobInd]);
     }
 
-    return imageBytes;
+    final int heightPx = imageRotated.height;
+
+    // set high density, use 0 for low density
+    const int densityByte = 33;
+    final List<int> header = [0x1B, 0x2A];
+    header.add(densityByte);
+    header.addAll(_intLowHigh(heightPx, 2));
+
+    // Adjust line spacing (for 16-unit line feeds): ESC 3 0x10 (HEX: 0x1b 0x33 0x10)
+    bytes += lineSpacing16;
+    for (int i = 0; i < blobs.length; ++i) {
+      bytes += List.from(header)
+        ..addAll(blobs[i])
+        ..addAll('\n'.codeUnits);
+    }
+    // Reset line spacing: ESC 2 (HEX: 0x1b 0x32)
+    bytes += resetLineSpacing;
+
+    return bytes;
+  }
+
+  /// Generate multiple bytes for a number: In lower and higher parts, or more parts as needed.
+  ///
+  /// [value] Input number
+  /// [bytesNb] The number of bytes to output (1 - 4)
+  static List<int> _intLowHigh(int value, int bytesNb) {
+    final dynamic maxInput = 256 << (bytesNb * 8) - 1;
+
+    if (bytesNb < 1 || bytesNb > 4) {
+      throw Exception('Can only output 1-4 bytes');
+    }
+    if (value < 0 || value > maxInput) {
+      throw Exception('Number is too large. Can only output up to $maxInput in $bytesNb bytes');
+    }
+
+    final List<int> res = <int>[];
+    int buf = value;
+    for (int i = 0; i < bytesNb; ++i) {
+      res.add(buf % 256);
+      buf = buf ~/ 256;
+    }
+    return res;
+  }
+
+  static List<int> _packBitsIntoBytes(List<int> bytes) {
+    const pxPerLine = 8;
+    final List<int> res = <int>[];
+    const threshold = 127; // set the greyscale -> b/w threshold here
+    for (int i = 0; i < bytes.length; i += pxPerLine) {
+      int newVal = 0;
+      for (int j = 0; j < pxPerLine; j++) {
+        newVal = _transformUint32Bool(
+          newVal,
+          pxPerLine - j,
+          bytes[i + j] > threshold,
+        );
+      }
+      res.add(newVal ~/ 2);
+    }
+    return res;
+  }
+
+  /// Replaces a single bit in a 32-bit unsigned integer.
+  static int _transformUint32Bool(int uint32, int shift, bool newValue) {
+    return ((0xFFFFFFFF ^ (0x1 << shift)) & uint32) | ((newValue ? 1 : 0) << shift);
+  }
+
+  /// Extract slices of an image as equal-sized blobs of column-format data.
+  ///
+  /// [image] Image to extract from
+  /// [lineHeight] Printed line height in dots
+  static List<List<int>> _toColumnFormat(Image imgSrc, int lineHeight) {
+    final Image image = Image.from(imgSrc); // make a copy
+
+    // Determine new width: closest integer that is divisible by lineHeight
+    final int widthPx = (image.width + lineHeight) - (image.width % lineHeight);
+    final int heightPx = image.height;
+
+    // Create a black bottom layer
+    final biggerImage = copyResize(image, width: widthPx, height: heightPx);
+    fill(biggerImage, 0);
+    // Insert source image into bigger one
+    drawImage(biggerImage, image, dstX: 0, dstY: 0);
+
+    int left = 0;
+    final List<List<int>> blobs = [];
+
+    while (left < widthPx) {
+      final Image slice = copyCrop(biggerImage, left, 0, lineHeight, heightPx);
+      final Uint8List bytes = slice.getBytes(format: Format.luminance);
+      blobs.add(bytes);
+      left += lineHeight;
+    }
+
+    return blobs;
   }
 
   void reset() {
@@ -314,12 +365,7 @@ class EscPosPrinterCommands {
   }
 
   EscPosPrinterCommands printImage(Uint8List image) {
-    List<Uint8List> bytesToPrint =
-        _useEscAsteriskCommand ? EscPosPrinterCommands.convertGsv0ToEscAsterisk(image) : [image];
-
-    for (Uint8List bytes in bytesToPrint) {
-      _printerConnection.write(bytes);
-    }
+    _printerConnection.write(image);
     return this;
   }
 
@@ -662,10 +708,6 @@ class EscPosPrinterCommands {
         EscPosPrinterCommands.lF
       ],
     );
-  }
-
-  void useEscAsteriskCommand(bool enable) {
-    _useEscAsteriskCommand = enable;
   }
 
   EscPosPrinterCommands? newLine() {

@@ -21,5 +21,5 @@ class ReceiptLine {
   String get _dashedLine => '[C]--------------------------------\n';
 
   /// <br>
-  String get _emptyLine => '\n';
+  String get _emptyLine => '';
 }

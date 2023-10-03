@@ -169,11 +169,12 @@ class Youprint {
     await _printProcess(bytesResult);
   }
 
-  static String base64toHexadecimal(String data) {
+  static String base64toHexadecimal(String data, int size) {
     final hexadecimal = PrinterTextParserImg.base64ImageToHexadecimalString(
       _escPosPrinter,
       data,
       false,
+      size,
     );
     return hexadecimal;
   }
