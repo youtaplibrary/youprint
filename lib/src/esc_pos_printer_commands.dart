@@ -66,7 +66,6 @@ class EscPosPrinterCommands {
 
   final DeviceConnection _printerConnection;
   late final EscPosCharsetEncoding _charsetEncoding;
-  bool _useEscAsteriskCommand = false;
 
   /// Create constructor of EscPosPrinterCommands
   /// @param [_printerConnection] an instance of a class which implement DeviceConnection
@@ -107,7 +106,7 @@ class EscPosPrinterCommands {
         imageBytesSize = 6 + bytesByLine * 24;
 
     List<Uint8List> returnedBytes = List.filled(imageLineHeightCount + 2, Uint8List(0));
-    returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing24);
+    returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing16);
     for (int i = 0; i < imageLineHeightCount; ++i) {
       int pxBaseRow = i * 24;
       Uint8List imageBytes = Uint8List(imageBytesSize);
@@ -139,7 +138,7 @@ class EscPosPrinterCommands {
       returnedBytes[i + 1] = imageBytes;
     }
     returnedBytes[returnedBytes.length - 1] = Uint8List.fromList(
-      EscPosPrinterCommands.lineSpacing24,
+      EscPosPrinterCommands.lineSpacing16,
     );
     return returnedBytes;
   }
@@ -206,7 +205,7 @@ class EscPosPrinterCommands {
   static List<int> imageToBytes(Image imageSrc) {
     List<int> bytes = [];
 
-    final Image image = imageSrc;
+    final Image image = Image.from(imageSrc);
 
     invert(image);
     flip(image, Flip.horizontal);
@@ -392,12 +391,7 @@ class EscPosPrinterCommands {
   }
 
   EscPosPrinterCommands printImage(Uint8List image) {
-    List<Uint8List> bytesToPrint =
-        _useEscAsteriskCommand ? EscPosPrinterCommands.convertGsv0ToEscAsterisk(image) : [image];
-
-    for (Uint8List bytes in bytesToPrint) {
-      _printerConnection.write(bytes);
-    }
+    _printerConnection.write(image);
     return this;
   }
 
@@ -740,10 +734,6 @@ class EscPosPrinterCommands {
         EscPosPrinterCommands.lF
       ],
     );
-  }
-
-  void useEscAsteriskCommand(bool enable) {
-    _useEscAsteriskCommand = enable;
   }
 
   EscPosPrinterCommands? newLine() {
