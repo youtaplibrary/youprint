@@ -188,21 +188,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
     await _youprint.printReceiptText(receiptText, feedCount: 1);
     //
-    // if (useQR) {
-    //   /// Example for print QR
-    //   await _youprint.printQR(
-    //     '00020101021226660014ID.LINKAJA.WWW011893600911002144000102151904161014400010303UBE51440014ID.CO.QRIS.WWW02151904161014400010303UBE52041234530336054032605802ID5924Jaya Abadi Cabang Serang6006SERANG6105421716267011823094169531974558207163bfecd4d55ed402c98210212628101155103030116304D44D',
-    //     size: 400,
-    //     feedCount: 1,
-    //   );
-    // }
+    if (useQR) {
+      /// Example for print QR
+      await _youprint.printQR(
+        '00020101021226660014ID.LINKAJA.WWW011893600911002144000102151904161014400010303UBE51440014ID.CO.QRIS.WWW02151904161014400010303UBE52041234530336054032605802ID5924Jaya Abadi Cabang Serang6006SERANG6105421716267011823094169531974558207163bfecd4d55ed402c98210212628101155103030116304D44D',
+        size: 400,
+        feedCount: 1,
+      );
+    }
     //
-    // if (useBarcode) {
-    //   final ReceiptSectionText receiptSecondText = ReceiptSectionText();
-    //   receiptSecondText.addSpacer();
-    //   receiptSecondText.addBarcode('202310LDL1696235767846', size: 400);
-    //   await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
-    // }
+    if (useBarcode) {
+      final ReceiptSectionText receiptSecondText = ReceiptSectionText();
+      receiptSecondText.addSpacer();
+      receiptSecondText.addBarcode('202310LDL1696235767846', size: 400);
+      await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
+    }
 
     ReceiptSectionText receiptSectionText = ReceiptSectionText();
     receiptSectionText.addLeftRightText(
