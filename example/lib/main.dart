@@ -1,8 +1,9 @@
-// import 'dart:math' as math;
+import 'dart:convert';
 
 import 'package:example/int_extension.dart';
 import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:youprint/youprint.dart';
 
 void main() {
@@ -101,23 +102,23 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    // /// Example for Print Image
-    // final ByteData logoBytes = await rootBundle.load(
-    //   'assets/image.png',
-    // );
-    //
-    // /// Example for Print Text
-    // final ReceiptSectionText receiptText = ReceiptSectionText();
-    //
-    // if (useLogo) {
-    //   receiptText.addImage(
-    //     base64.encode(Uint8List.view(logoBytes.buffer)),
-    //     width: 480,
-    //   );
-    //   receiptText.addSpacer();
-    // }
-    //
-    // /// Merchant name
+    /// Example for Print Image
+    final ByteData logoBytes = await rootBundle.load(
+      'assets/image.png',
+    );
+
+    /// Example for Print Text
+    final ReceiptSectionText receiptText = ReceiptSectionText();
+
+    if (useLogo) {
+      receiptText.addImage(
+        base64.encode(Uint8List.view(logoBytes.buffer)),
+        width: 180,
+      );
+      receiptText.addSpacer();
+    }
+
+    /// Merchant name
     // receiptText.addText(
     //   'MY STORE',
     //   size: ReceiptTextSizeType.large,
@@ -178,46 +179,55 @@ class _MyHomePageState extends State<MyHomePage> {
     //   rightStyle: ReceiptTextStyleType.bold,
     // );
     // receiptText.addSpacer(useDashed: true);
-    // receiptText.addLeftRightText(
-    //   'Payment',
-    //   'Cash',
-    //   leftStyle: ReceiptTextStyleType.normal,
-    //   rightStyle: ReceiptTextStyleType.normal,
-    // );
-    //
-    // await _youprint.printReceiptText(receiptText, feedCount: 1);
-    //
-    // if (useQR) {
-    //   /// Example for print QR
-    //   await _youprint.printQR(
-    //     '00020101021226660014ID.LINKAJA.WWW011893600911002144000102151904161014400010303UBE51440014ID.CO.QRIS.WWW02151904161014400010303UBE52041234530336054032605802ID5924Jaya Abadi Cabang Serang6006SERANG6105421716267011823094169531974558207163bfecd4d55ed402c98210212628101155103030116304D44D',
-    //     size: 480,
-    //     feedCount: 1,
-    //   );
-    // }
+    receiptText.addLeftRightText(
+      'Payment',
+      'Cash',
+      leftStyle: ReceiptTextStyleType.normal,
+      rightStyle: ReceiptTextStyleType.normal,
+    );
+
+    await _youprint.printReceiptText(receiptText, feedCount: 1);
+
+    if (useQR) {
+      /// Example for print QR
+      await _youprint.printQR(
+        '00020101021226660014ID.LINKAJA.WWW011893600911002144000102151904161014400010303UBE51440014ID.CO.QRIS.WWW02151904161014400010303UBE52041234530336054032605802ID5924Jaya Abadi Cabang Serang6006SERANG6105421716267011823094169531974558207163bfecd4d55ed402c98210212628101155103030116304D44D',
+        size: 400,
+        feedCount: 1,
+      );
+    }
     //
     // if (useBarcode) {
     //   final ReceiptSectionText receiptSecondText = ReceiptSectionText();
     //   receiptSecondText.addSpacer();
-    //   receiptSecondText.addBarcode('831254784551', size: 400);
+    //   receiptSecondText.addBarcode('202310LDL1696235767846', size: 400);
     //   await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
     // }
 
-    ReceiptSectionText receiptSectionText = ReceiptSectionText();
-    receiptSectionText.addLeftRightText(
-      'Trail ID',
-      '20231313123812381238123812',
-      leftStyle: ReceiptTextStyleType.normal,
-      rightStyle: ReceiptTextStyleType.normal,
-    );
-    receiptSectionText.addLeftRightText(
-      'Penambahan Harga',
-      'Rp.5500',
-      leftStyle: ReceiptTextStyleType.normal,
-      rightStyle: ReceiptTextStyleType.normal,
-    );
-
-    await _youprint.printReceiptText(receiptSectionText, feedCount: 1);
+    // ReceiptSectionText receiptSectionText = ReceiptSectionText();
+    // receiptSectionText.addLeftRightText(
+    //   'Trail ID',
+    //   '20231313123812381238123812',
+    //   leftStyle: ReceiptTextStyleType.bold,
+    //   rightStyle: ReceiptTextStyleType.normal,
+    // );
+    // receiptSectionText.addLeftRightText(
+    //   'Penambahan Harga',
+    //   'Rp.5500',
+    //   leftStyle: ReceiptTextStyleType.normal,
+    //   rightStyle: ReceiptTextStyleType.normal,
+    // );
+    // receiptSectionText.addLeftRightText(
+    //   'Mie Ayam Jamur Special dengan Bakso Sapi Urat tanpa telur',
+    //   'Rp22.000.000',
+    //   leftStyle: ReceiptTextStyleType.normal,
+    //   rightStyle: ReceiptTextStyleType.bold,
+    //   prefixText: '1x ',
+    //   prefixTextStyle: ReceiptTextStyleType.bold,
+    //   maxCharLeftText: 17,
+    // );
+    //
+    // await _youprint.printReceiptText(receiptSectionText, feedCount: 1);
   }
 
   @override

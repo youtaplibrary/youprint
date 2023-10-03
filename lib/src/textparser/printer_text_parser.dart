@@ -37,7 +37,7 @@ class PrinterTextParser {
     PrinterTextParser.tagsFormatTextUnderline,
   ];
 
-  static const String attrFormatTextUnderlineType = 'tyoe';
+  static const String attrFormatTextUnderlineType = 'type';
   static const String attrFormatTextUnderlineTypeNormal = 'normal';
   static const String attrFormatTextUnderlineTypeDouble = 'double';
 

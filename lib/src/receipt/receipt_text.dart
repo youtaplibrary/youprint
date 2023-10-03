@@ -18,9 +18,6 @@ class ReceiptText {
   final ReceiptAlignment alignment;
 
   String _formattedLine(String text) {
-    if (textStyle.type == ReceiptTextStyleType.bold) {
-      return '$_alignmentStyleContent<b><${textStyle.textStyleContent} ${textStyle.textSizeContent}>$text</${textStyle.textStyleContent}></b>\n';
-    }
     return '$_alignmentStyleContent<${textStyle.textStyleContent} ${textStyle.textSizeContent}>$text</${textStyle.textStyleContent}>\n';
   }
 

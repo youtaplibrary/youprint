@@ -107,6 +107,9 @@ class PrinterTextParserColumn {
             switch (textParserTag.getTagName) {
               case PrinterTextParser.tagsFormatTextBold:
                 textParser.dropLastTextBold();
+                textParser.dropLastTextSize();
+                textParser.dropLastTextColor();
+                textParser.dropLastTextReverseColor();
                 break;
               case PrinterTextParser.tagsFormatTextUnderline:
                 textParser.dropLastTextUnderline();
@@ -122,6 +125,41 @@ class PrinterTextParserColumn {
             switch (textParserTag.getTagName) {
               case PrinterTextParser.tagsFormatTextBold:
                 textParser.addTextBold(EscPosPrinterCommands.textWeightBold);
+                if (textParserTag.hasAttribute(PrinterTextParser.attrFormatTextFontSize)) {
+                  switch (textParserTag.getAttribute(PrinterTextParser.attrFormatTextFontSize)) {
+                    case PrinterTextParser.attrFormatTextFontSizeNormal:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeNormal);
+                      break;
+                    case PrinterTextParser.attrFormatTextFontSizeTall:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeDoubleHeight);
+                      break;
+                    case PrinterTextParser.attrFormatTextFontSizeWide:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeDoubleWidth);
+                      break;
+                    case PrinterTextParser.attrFormatTextFontSizeBig:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig);
+                      break;
+                    case PrinterTextParser.attrFormatTextFontSizeBig2:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig2);
+                      break;
+                    case PrinterTextParser.attrFormatTextFontSizeBig3:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig3);
+                      break;
+                    case PrinterTextParser.attrFormatTextFontSizeBig4:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig4);
+                      break;
+                    case PrinterTextParser.attrFormatTextFontSizeBig5:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig5);
+                      break;
+                    case PrinterTextParser.attrFormatTextFontSizeBig6:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig6);
+                      break;
+                    default:
+                      textParser.addTextSize(EscPosPrinterCommands.textSizeNormal);
+                  }
+                } else {
+                  textParser.addTextSize(textParser.getLastTextSize);
+                }
                 break;
               case PrinterTextParser.tagsFormatTextUnderline:
                 if (textParserTag.hasAttribute(PrinterTextParser.attrFormatTextUnderlineType)) {
@@ -366,7 +404,8 @@ class PrinterTextParserColumn {
     HashMap<String, String> imageAttributes,
     String hexString,
   ) {
-    appendElement(PrinterTextParserImg(this, textAlign, hexadecimalString: hexString));
+    appendElement(
+        PrinterTextParserImg(this, textAlign, imageAttributes, hexadecimalString: hexString));
   }
 
   void appendBarcode(

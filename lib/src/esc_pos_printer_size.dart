@@ -21,7 +21,7 @@ class EscPosPrinterSize {
     printerCharSizeWidthPx = printingWidthPx ~/ _printerNbrCharactersPerLine;
   }
 
-  List<int> imageToBytes(Image image, bool gradient) {
+  List<int> imageToBytes(Image image, bool gradient, int size) {
     bool isSizeEdit = false;
     int bitmapWidth = image.width,
         bitmapHeight = image.height,

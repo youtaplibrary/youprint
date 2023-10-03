@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
 import 'package:youprint/src/barcode/barcode.dart';
 import 'package:youprint/src/esc_pos_charset_encoding.dart';
+import 'package:zxing_lib/common.dart';
 import 'package:zxing_lib/qrcode.dart' as qr;
 import 'package:zxing_lib/zxing.dart';
 
@@ -66,7 +67,6 @@ class EscPosPrinterCommands {
 
   final DeviceConnection _printerConnection;
   late final EscPosCharsetEncoding _charsetEncoding;
-  bool _useEscAsteriskCommand = false;
 
   /// Create constructor of EscPosPrinterCommands
   /// @param [_printerConnection] an instance of a class which implement DeviceConnection
@@ -107,7 +107,7 @@ class EscPosPrinterCommands {
         imageBytesSize = 6 + bytesByLine * 24;
 
     List<Uint8List> returnedBytes = List.filled(imageLineHeightCount + 2, Uint8List(0));
-    returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing24);
+    returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing16);
     for (int i = 0; i < imageLineHeightCount; ++i) {
       int pxBaseRow = i * 24;
       Uint8List imageBytes = Uint8List(imageBytesSize);
@@ -139,67 +139,41 @@ class EscPosPrinterCommands {
       returnedBytes[i + 1] = imageBytes;
     }
     returnedBytes[returnedBytes.length - 1] = Uint8List.fromList(
-      EscPosPrinterCommands.lineSpacing24,
+      EscPosPrinterCommands.lineSpacing16,
     );
     return returnedBytes;
   }
 
   static Uint8List convertQRCodeToBytes(String data, int size) {
-    qr.ByteMatrix? byteMatrix;
+    qr.QRCodeWriter writer = qr.QRCodeWriter();
+    BitMatrix matrix;
+
+    size = size > 360 ? 360 : size;
 
     try {
-      const EncodeHint hint = EncodeHint(characterSet: "UTF-8");
-      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.L, hint);
-      byteMatrix = code.matrix;
+      matrix = writer.encode(
+        data,
+        BarcodeFormat.qrCode,
+        size,
+        size,
+        const EncodeHint(
+          characterSet: "ISO-8859-1",
+          errorCorrectionLevel: qr.ErrorCorrectionLevel.M,
+        ),
+      );
     } catch (e) {
       throw const EscPosBarcodeException("Unable to encode QR code");
     }
 
-    if (byteMatrix == null) {
-      return EscPosPrinterCommands.initGSv0Command(0, 0);
-    }
-
-    size = size > 256 ? (203 / 25.4 * 48.0).round() : size;
-    int width = byteMatrix.width,
-        height = byteMatrix.height,
-        coefficient = (size / width).round(),
-        imageWidth = width * coefficient,
-        imageHeight = height * coefficient,
-        bytesByLine = (imageWidth / 8).ceil(),
-        i = 8;
-
-    if (coefficient < 1) {
-      return EscPosPrinterCommands.initGSv0Command(0, 0);
-    }
-
-    Uint8List imageBytes = EscPosPrinterCommands.initGSv0Command(bytesByLine, imageHeight);
-
-    for (int y = 0; y < height; y++) {
-      Uint8List lineBytes = Uint8List(bytesByLine);
-      int x = -1, multipleX = coefficient;
-      bool isBlack = false;
-      for (int j = 0; j < bytesByLine; j++) {
-        int b = 0;
-        for (int k = 0; k < 8; k++) {
-          if (multipleX == coefficient) {
-            isBlack = ++x < width && byteMatrix.get(x, y) == 1;
-            multipleX = 0;
-          }
-          if (isBlack) {
-            b |= 1 << (7 - k);
-          }
-          ++multipleX;
-        }
-        lineBytes[j] = b;
-      }
-
-      for (int multipleY = 0; multipleY < coefficient; ++multipleY) {
-        imageBytes.setRange(i, i + lineBytes.length, lineBytes, 0);
-        i += lineBytes.length;
+    Image image = Image(size, size, channels: Channels.rgb);
+    for (int x = 0; x < size; x++) {
+      for (int y = 0; y < size; y++) {
+        //-16777216 is black -1 is white
+        image.setPixel(x, y, matrix.get(x, y) ? -16777216 : -1);
       }
     }
 
-    return imageBytes;
+    return Uint8List.fromList(imageToBytes(image));
   }
 
   static List<int> imageToBytes(Image imageSrc) {
@@ -391,12 +365,7 @@ class EscPosPrinterCommands {
   }
 
   EscPosPrinterCommands printImage(Uint8List image) {
-    List<Uint8List> bytesToPrint =
-        _useEscAsteriskCommand ? EscPosPrinterCommands.convertGsv0ToEscAsterisk(image) : [image];
-
-    for (Uint8List bytes in bytesToPrint) {
-      _printerConnection.write(bytes);
-    }
+    _printerConnection.write(image);
     return this;
   }
 
@@ -739,10 +708,6 @@ class EscPosPrinterCommands {
         EscPosPrinterCommands.lF
       ],
     );
-  }
-
-  void useEscAsteriskCommand(bool enable) {
-    _useEscAsteriskCommand = enable;
   }
 
   EscPosPrinterCommands? newLine() {
