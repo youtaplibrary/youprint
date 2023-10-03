@@ -148,6 +148,8 @@ class EscPosPrinterCommands {
     qr.QRCodeWriter writer = qr.QRCodeWriter();
     BitMatrix matrix;
 
+    size = size > 360 ? 360 : size;
+
     try {
       matrix = writer.encode(
         data,

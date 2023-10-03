@@ -179,15 +179,15 @@ class _MyHomePageState extends State<MyHomePage> {
     //   rightStyle: ReceiptTextStyleType.bold,
     // );
     // receiptText.addSpacer(useDashed: true);
-    // receiptText.addLeftRightText(
-    //   'Payment',
-    //   'Cash',
-    //   leftStyle: ReceiptTextStyleType.normal,
-    //   rightStyle: ReceiptTextStyleType.normal,
-    // );
+    receiptText.addLeftRightText(
+      'Payment',
+      'Cash',
+      leftStyle: ReceiptTextStyleType.normal,
+      rightStyle: ReceiptTextStyleType.normal,
+    );
 
-    // await _youprint.printReceiptText(receiptText, feedCount: 1);
-    //
+    await _youprint.printReceiptText(receiptText, feedCount: 1);
+
     if (useQR) {
       /// Example for print QR
       await _youprint.printQR(
