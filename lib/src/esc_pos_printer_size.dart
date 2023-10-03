@@ -22,6 +22,27 @@ class EscPosPrinterSize {
   }
 
   List<int> imageToBytes(Image image, bool gradient, int size) {
+    bool isSizeEdit = false;
+    int bitmapWidth = image.width,
+        bitmapHeight = image.height,
+        maxWidth = printerWidthPx,
+        maxHeight = 256;
+
+    if (bitmapWidth > maxWidth) {
+      bitmapHeight = ((bitmapHeight) * (maxWidth) / (bitmapWidth)).round();
+      bitmapWidth = maxWidth;
+      isSizeEdit = true;
+    }
+    if (bitmapHeight > maxHeight) {
+      bitmapWidth = ((bitmapWidth) * (maxHeight) / (bitmapHeight)).round();
+      bitmapHeight = maxHeight;
+      isSizeEdit = true;
+    }
+
+    if (isSizeEdit) {
+      image = copyResize(image, width: bitmapWidth, height: bitmapHeight);
+    }
+
     return EscPosPrinterCommands.imageToBytes(image);
   }
 

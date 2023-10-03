@@ -186,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //   rightStyle: ReceiptTextStyleType.normal,
     // );
 
-    await _youprint.printReceiptText(receiptText, feedCount: 1);
+    // await _youprint.printReceiptText(receiptText, feedCount: 1);
     //
     if (useQR) {
       /// Example for print QR
@@ -197,37 +197,37 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
     //
-    if (useBarcode) {
-      final ReceiptSectionText receiptSecondText = ReceiptSectionText();
-      receiptSecondText.addSpacer();
-      receiptSecondText.addBarcode('202310LDL1696235767846', size: 400);
-      await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
-    }
+    // if (useBarcode) {
+    //   final ReceiptSectionText receiptSecondText = ReceiptSectionText();
+    //   receiptSecondText.addSpacer();
+    //   receiptSecondText.addBarcode('202310LDL1696235767846', size: 400);
+    //   await _youprint.printReceiptText(receiptSecondText, feedCount: 1);
+    // }
 
-    ReceiptSectionText receiptSectionText = ReceiptSectionText();
-    receiptSectionText.addLeftRightText(
-      'Trail ID',
-      '20231313123812381238123812',
-      leftStyle: ReceiptTextStyleType.bold,
-      rightStyle: ReceiptTextStyleType.normal,
-    );
-    receiptSectionText.addLeftRightText(
-      'Penambahan Harga',
-      'Rp.5500',
-      leftStyle: ReceiptTextStyleType.normal,
-      rightStyle: ReceiptTextStyleType.normal,
-    );
-    receiptSectionText.addLeftRightText(
-      'Mie Ayam Jamur Special dengan Bakso Sapi Urat tanpa telur',
-      'Rp22.000.000',
-      leftStyle: ReceiptTextStyleType.normal,
-      rightStyle: ReceiptTextStyleType.bold,
-      prefixText: '1x ',
-      prefixTextStyle: ReceiptTextStyleType.bold,
-      maxCharLeftText: 17,
-    );
-
-    await _youprint.printReceiptText(receiptSectionText, feedCount: 1);
+    // ReceiptSectionText receiptSectionText = ReceiptSectionText();
+    // receiptSectionText.addLeftRightText(
+    //   'Trail ID',
+    //   '20231313123812381238123812',
+    //   leftStyle: ReceiptTextStyleType.bold,
+    //   rightStyle: ReceiptTextStyleType.normal,
+    // );
+    // receiptSectionText.addLeftRightText(
+    //   'Penambahan Harga',
+    //   'Rp.5500',
+    //   leftStyle: ReceiptTextStyleType.normal,
+    //   rightStyle: ReceiptTextStyleType.normal,
+    // );
+    // receiptSectionText.addLeftRightText(
+    //   'Mie Ayam Jamur Special dengan Bakso Sapi Urat tanpa telur',
+    //   'Rp22.000.000',
+    //   leftStyle: ReceiptTextStyleType.normal,
+    //   rightStyle: ReceiptTextStyleType.bold,
+    //   prefixText: '1x ',
+    //   prefixTextStyle: ReceiptTextStyleType.bold,
+    //   maxCharLeftText: 17,
+    // );
+    //
+    // await _youprint.printReceiptText(receiptSectionText, feedCount: 1);
   }
 
   @override

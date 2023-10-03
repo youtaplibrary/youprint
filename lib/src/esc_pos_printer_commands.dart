@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
 import 'package:youprint/src/barcode/barcode.dart';
 import 'package:youprint/src/esc_pos_charset_encoding.dart';
+import 'package:zxing_lib/common.dart';
 import 'package:zxing_lib/qrcode.dart' as qr;
 import 'package:zxing_lib/zxing.dart';
 
@@ -144,62 +145,33 @@ class EscPosPrinterCommands {
   }
 
   static Uint8List convertQRCodeToBytes(String data, int size) {
-    qr.ByteMatrix? byteMatrix;
+    qr.QRCodeWriter writer = qr.QRCodeWriter();
+    BitMatrix matrix;
 
     try {
-      const EncodeHint hint = EncodeHint(characterSet: "UTF-8");
-      qr.QRCode code = qr.Encoder.encode(data, qr.ErrorCorrectionLevel.L, hint);
-      byteMatrix = code.matrix;
+      matrix = writer.encode(
+        data,
+        BarcodeFormat.qrCode,
+        size,
+        size,
+        const EncodeHint(
+          characterSet: "ISO-8859-1",
+          errorCorrectionLevel: qr.ErrorCorrectionLevel.M,
+        ),
+      );
     } catch (e) {
       throw const EscPosBarcodeException("Unable to encode QR code");
     }
 
-    if (byteMatrix == null) {
-      return EscPosPrinterCommands.initGSv0Command(0, 0);
-    }
-
-    // 384 (48mm * 8) is max printer width pixel for paper 58mm
-    size = size > 384 ? 384 : size;
-    int width = byteMatrix.width,
-        height = byteMatrix.height,
-        coefficient = (size / width).round(),
-        imageWidth = width * coefficient,
-        imageHeight = height * coefficient,
-        bytesByLine = (imageWidth / 8).ceil(),
-        i = 8;
-
-    if (coefficient < 1) {
-      return EscPosPrinterCommands.initGSv0Command(0, 0);
-    }
-
-    Uint8List imageBytes = EscPosPrinterCommands.initGSv0Command(bytesByLine, imageHeight);
-
-    for (int y = 0; y < height; y++) {
-      Uint8List lineBytes = Uint8List(bytesByLine);
-      int x = -1, multipleX = coefficient;
-      bool isBlack = false;
-      for (int j = 0; j < bytesByLine; j++) {
-        int b = 0;
-        for (int k = 0; k < 8; k++) {
-          if (multipleX == coefficient) {
-            isBlack = ++x < width && byteMatrix.get(x, y) == 1;
-            multipleX = 0;
-          }
-          if (isBlack) {
-            b |= 1 << (7 - k);
-          }
-          ++multipleX;
-        }
-        lineBytes[j] = b;
-      }
-
-      for (int multipleY = 0; multipleY < coefficient; ++multipleY) {
-        imageBytes.setRange(i, i + lineBytes.length, lineBytes, 0);
-        i += lineBytes.length;
+    Image image = Image(size, size, channels: Channels.rgb);
+    for (int x = 0; x < size; x++) {
+      for (int y = 0; y < size; y++) {
+        //-16777216 is black -1 is white
+        image.setPixel(x, y, matrix.get(x, y) ? -16777216 : -1);
       }
     }
 
-    return imageBytes;
+    return Uint8List.fromList(imageToBytes(image));
   }
 
   static List<int> imageToBytes(Image imageSrc) {
