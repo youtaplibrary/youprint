@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -6,16 +7,18 @@ import 'package:youprint/src/exceptions/exception.dart';
 import 'package:youprint/youprint.dart';
 
 class PrinterTextParserImg implements PrinterTextParserElement {
-  int _length = 0;
+  final int _length = 0;
   Uint8List _image = Uint8List(0);
+  List<int> _align = [];
+  int size = 0;
 
   PrinterTextParserImg(
     PrinterTextParserColumn printerTextParserColumn,
-    String textAlign, {
+    String textAlign,
+    HashMap<String, String> imageAttributes, {
     String? hexadecimalString,
     Uint8List? bytes,
   }) {
-    EscPosPrinter printer = printerTextParserColumn.getLine.getTextParser.getPrinter;
     Uint8List image = Uint8List(0);
 
     if (hexadecimalString != null) {
@@ -26,38 +29,15 @@ class PrinterTextParserImg implements PrinterTextParserElement {
       image = bytes;
     }
 
-    int byteWidth = (image[4] & 0xFF) + ((image[5] & 0xFF) * 256),
-        width = byteWidth * 8,
-        height = (image[6] & 0xFF) + (image[7] & 0xFF) * 256,
-        nbrByteDiff = ((printer.getPrinterWidthPx - width) / 8).floor(),
-        nbrWhiteByteToInsert = 0;
-
+    _align = EscPosPrinterCommands.textAlignLeft;
     switch (textAlign) {
       case PrinterTextParser.tagsAlignCenter:
-        nbrWhiteByteToInsert = (nbrByteDiff / 2).round();
+        _align = EscPosPrinterCommands.textAlignCenter;
         break;
       case PrinterTextParser.tagsAlignRight:
-        nbrWhiteByteToInsert = nbrByteDiff;
+        _align = EscPosPrinterCommands.textAlignRight;
         break;
     }
-
-    // nbrWhiteByteToInsert = 0;
-    if (nbrWhiteByteToInsert > 0) {
-      int newByteWidth = byteWidth + nbrWhiteByteToInsert;
-      Uint8List newImage = EscPosPrinterCommands.initGSv0Command(newByteWidth, height);
-      for (int i = 0; i < height; i++) {
-        newImage.setRange(
-          (newByteWidth * i + nbrWhiteByteToInsert + 8),
-          (newByteWidth * i + nbrWhiteByteToInsert + 8) + byteWidth,
-          image,
-          (byteWidth * i + 8),
-        );
-      }
-
-      image = newImage;
-    }
-
-    _length = ((byteWidth * 8) / printer.getPrinterWidthPx).ceil();
     _image = image;
   }
 
@@ -65,21 +45,28 @@ class PrinterTextParserImg implements PrinterTextParserElement {
     EscPosPrinterSize printerSize,
     Image image,
     bool gradient,
+    int size,
   ) {
-    return PrinterTextParserImg.bytesToHexadecimalString(printerSize.imageToBytes(image, gradient));
+    final rescaledImage = copyResize(image, width: size);
+    return PrinterTextParserImg.bytesToHexadecimalString(
+      printerSize.imageToBytes(rescaledImage, gradient, size),
+    );
   }
 
   static String base64ImageToHexadecimalString(
     EscPosPrinterSize printerSize,
     String base64Image,
     bool gradient,
+    int size,
   ) {
     final Image? image = decodeImage(base64.decode(base64Image));
     if (image == null) throw const EscPosParserException('Failed to parse base64 to image');
-    return PrinterTextParserImg.bytesToHexadecimalString(printerSize.imageToBytes(image, gradient));
+    return PrinterTextParserImg.bytesToHexadecimalString(
+      printerSize.imageToBytes(copyResize(image, width: size), gradient, size),
+    );
   }
 
-  static String bytesToHexadecimalString(Uint8List bytes) {
+  static String bytesToHexadecimalString(List<int> bytes) {
     StringBuffer imageHexString = StringBuffer();
     for (int aByte in bytes) {
       String hexString = (aByte & 0xFF).toRadixString(16).padLeft(2, '0');
@@ -102,7 +89,10 @@ class PrinterTextParserImg implements PrinterTextParserElement {
 
   @override
   PrinterTextParserImg print(EscPosPrinterCommands printerSocket) {
-    printerSocket.printImage(_image);
+    printerSocket
+        .setAlign(Uint8List.fromList(_align))
+        .printImage(_image)
+        .setAlign(Uint8List.fromList(EscPosPrinterCommands.textAlignLeft));
     return this;
   }
 }

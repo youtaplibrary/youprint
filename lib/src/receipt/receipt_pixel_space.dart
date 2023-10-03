@@ -5,5 +5,5 @@ class ReceiptPixelSpace {
 
   final int pixels;
 
-  String get content => '\n';
+  String get content => '[L]\n';
 }

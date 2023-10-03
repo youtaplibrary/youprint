@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:image/image.dart';
 import 'package:youprint/src/esc_pos_printer_commands.dart';
 
@@ -23,7 +21,7 @@ class EscPosPrinterSize {
     printerCharSizeWidthPx = printingWidthPx ~/ _printerNbrCharactersPerLine;
   }
 
-  Uint8List imageToBytes(Image image, bool gradient) {
+  List<int> imageToBytes(Image image, bool gradient, int size) {
     bool isSizeEdit = false;
     int bitmapWidth = image.width,
         bitmapHeight = image.height,
@@ -42,11 +40,10 @@ class EscPosPrinterSize {
     }
 
     if (isSizeEdit) {
-      image = Image.fromBytes(bitmapWidth, bitmapHeight, image.data);
-      // image = Image.fromResized(image, width: bitmapWidth, height: bitmapHeight);
+      image = copyResize(image, width: bitmapWidth, height: bitmapHeight);
     }
 
-    return EscPosPrinterCommands.imageToBytes(image, gradient);
+    return EscPosPrinterCommands.imageToBytes(image);
   }
 
   int get getPrinterNbrCharactersPerLine =>
