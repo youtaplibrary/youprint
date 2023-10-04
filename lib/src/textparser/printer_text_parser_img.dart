@@ -89,10 +89,7 @@ class PrinterTextParserImg implements PrinterTextParserElement {
 
   @override
   PrinterTextParserImg print(EscPosPrinterCommands printerSocket) {
-    printerSocket
-        .setAlign(Uint8List.fromList(_align))
-        .printImage(_image)
-        .setAlign(Uint8List.fromList(EscPosPrinterCommands.textAlignLeft));
+    printerSocket.setAlign(Uint8List.fromList(_align)).printImage(_image);
     return this;
   }
 }
