@@ -148,7 +148,7 @@ class EscPosPrinterCommands {
     qr.QRCodeWriter writer = qr.QRCodeWriter();
     BitMatrix matrix;
 
-    size = size > 356 ? 356 : size;
+    size = size > 360 ? 360 : size;
 
     try {
       matrix = writer.encode(
@@ -158,8 +158,8 @@ class EscPosPrinterCommands {
         size,
         const EncodeHint(
           characterSet: "ISO-8859-1",
-          errorCorrectionLevel: qr.ErrorCorrectionLevel.L,
-          margin: 0,
+          errorCorrectionLevel: qr.ErrorCorrectionLevel.M,
+          margin: 1,
         ),
       );
     } catch (e) {
