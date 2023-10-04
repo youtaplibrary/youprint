@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (useLogo) {
       receiptText.addImage(
         base64.encode(Uint8List.view(logoBytes.buffer)),
-        width: 180,
+        width: 330,
       );
       receiptText.addSpacer();
     }
@@ -179,23 +179,37 @@ class _MyHomePageState extends State<MyHomePage> {
     //   rightStyle: ReceiptTextStyleType.bold,
     // );
     // receiptText.addSpacer(useDashed: true);
-    receiptText.addLeftRightText(
-      'Payment',
-      'Cash',
-      leftStyle: ReceiptTextStyleType.normal,
-      rightStyle: ReceiptTextStyleType.normal,
+    // receiptText.addLeftRightText(
+    //   'Payment',
+    //   'Cash',
+    //   leftStyle: ReceiptTextStyleType.normal,
+    //   rightStyle: ReceiptTextStyleType.normal,
+    // );
+
+    for (int i = 0; i < 20; i++) {
+      receiptText.addText('test dulu', alignment: ReceiptAlignment.left);
+    }
+    receiptText.addText('--------------------------------');
+
+    receiptText.addText('Scan kode QR berikut untuk melakukan pembayaran.');
+
+    receiptText.addQR(
+      '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
+      size: 480,
     );
 
-    await _youprint.printReceiptText(receiptText, feedCount: 1);
+    receiptText.addText('Cek e-menu restaurant di link yang disediakan di bawah ini');
 
-    if (useQR) {
-      /// Example for print QR
-      await _youprint.printQR(
-        '00020101021226660014ID.LINKAJA.WWW011893600911002144000102151904161014400010303UBE51440014ID.CO.QRIS.WWW02151904161014400010303UBE52041234530336054032605802ID5924Jaya Abadi Cabang Serang6006SERANG6105421716267011823094169531974558207163bfecd4d55ed402c98210212628101155103030116304D44D',
-        size: 400,
-        feedCount: 1,
-      );
-    }
+    await _youprint.printReceiptText(receiptText);
+
+    // if (useQR) {
+    //   /// Example for print QR
+    //   await _youprint.printQR(
+    //     '00020101021226660014ID.LINKAJA.WWW011893600911002144000102151904161014400010303UBE51440014ID.CO.QRIS.WWW02151904161014400010303UBE52041234530336054032605802ID5924Jaya Abadi Cabang Serang6006SERANG6105421716267011823094169531974558207163bfecd4d55ed402c98210212628101155103030116304D44D',
+    //     size: 400,
+    //     feedCount: 1,
+    //   );
+    // }
     //
     // if (useBarcode) {
     //   final ReceiptSectionText receiptSecondText = ReceiptSectionText();
