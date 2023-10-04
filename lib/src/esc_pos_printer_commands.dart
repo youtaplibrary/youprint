@@ -75,80 +75,11 @@ class EscPosPrinterCommands {
     _charsetEncoding = charsetEncoding ?? EscPosCharsetEncoding("windows-1252", 16);
   }
 
-  static Uint8List initGSv0Command(int bytesByLine, int imageHeight) {
-    int xH = bytesByLine ~/ 256,
-        xL = bytesByLine - (xH * 256),
-        yH = imageHeight ~/ 256,
-        yL = imageHeight - (yH * 256);
-
-    Uint8List imageBytes = Uint8List(8 + bytesByLine * imageHeight);
-    imageBytes[0] = 0x1D;
-    imageBytes[1] = 0x76;
-    imageBytes[2] = 0x30;
-    imageBytes[3] = 0x00;
-    imageBytes[4] = xL.toInt();
-    imageBytes[5] = xH.toInt();
-    imageBytes[6] = yL.toInt();
-    imageBytes[7] = yH.toInt();
-    return imageBytes;
-  }
-
-  static List<Uint8List> convertGsv0ToEscAsterisk(Uint8List bytes) {
-    int xL = bytes[4] & 0xFF,
-        xH = bytes[5] & 0xFF,
-        yL = bytes[6] & 0xFF,
-        yH = bytes[7] & 0xFF,
-        bytesByLine = xH * 256 + xL,
-        dotsByLine = bytesByLine * 8,
-        nH = dotsByLine ~/ 256,
-        nL = dotsByLine % 256,
-        imageHeight = yH * 256 + yL,
-        imageLineHeightCount = (imageHeight / 24.0).ceil(),
-        imageBytesSize = 6 + bytesByLine * 24;
-
-    List<Uint8List> returnedBytes = List.filled(imageLineHeightCount + 2, Uint8List(0));
-    returnedBytes[0] = Uint8List.fromList(EscPosPrinterCommands.lineSpacing16);
-    for (int i = 0; i < imageLineHeightCount; ++i) {
-      int pxBaseRow = i * 24;
-      Uint8List imageBytes = Uint8List(imageBytesSize);
-      imageBytes[0] = 0x1B;
-      imageBytes[1] = 0x2A;
-      imageBytes[2] = 0x21;
-      imageBytes[3] = nL;
-      imageBytes[4] = nH;
-      for (int j = 5; j < imageBytes.length; ++j) {
-        int imgByte = j - 5,
-            byteRow = imgByte % 3,
-            pxColumn = imgByte ~/ 3,
-            bitColumn = 1 << (7 - pxColumn % 8),
-            pxRow = pxBaseRow + byteRow * 8;
-        for (int k = 0; k < 8; ++k) {
-          int indexBytes = bytesByLine * (pxRow + k) + pxColumn ~/ 8 + 8;
-
-          if (indexBytes >= bytes.length) {
-            break;
-          }
-
-          bool isBlack = (bytes[indexBytes] & bitColumn) == bitColumn;
-          if (isBlack) {
-            imageBytes[j] |= 1 << 7 - k;
-          }
-        }
-      }
-      imageBytes[imageBytes.length - 1] = EscPosPrinterCommands.lF;
-      returnedBytes[i + 1] = imageBytes;
-    }
-    returnedBytes[returnedBytes.length - 1] = Uint8List.fromList(
-      EscPosPrinterCommands.lineSpacing16,
-    );
-    return returnedBytes;
-  }
-
   static Uint8List convertQRCodeToBytes(String data, int size) {
     qr.QRCodeWriter writer = qr.QRCodeWriter();
     BitMatrix matrix;
 
-    size = size > 300 ? 300 : size;
+    size = size > 320 ? 320 : size;
 
     try {
       matrix = writer.encode(
@@ -207,6 +138,7 @@ class EscPosPrinterCommands {
     header.addAll(_intLowHigh(heightPx, 2));
 
     // Adjust line spacing (for 16-unit line feeds): ESC 3 0x10 (HEX: 0x1b 0x33 0x10)
+    bytes += resetLineSpacing;
     bytes += lineSpacing16;
     for (int i = 0; i < blobs.length; ++i) {
       bytes += List.from(header)
