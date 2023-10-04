@@ -89,8 +89,8 @@ class EscPosPrinterCommands {
         size,
         const EncodeHint(
           characterSet: "ISO-8859-1",
-          errorCorrectionLevel: qr.ErrorCorrectionLevel.M,
-          margin: 1,
+          errorCorrectionLevel: qr.ErrorCorrectionLevel.L,
+          margin: 2,
         ),
       );
     } catch (e) {
