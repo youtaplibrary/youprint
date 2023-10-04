@@ -79,7 +79,7 @@ class EscPosPrinterCommands {
     qr.QRCodeWriter writer = qr.QRCodeWriter();
     BitMatrix matrix;
 
-    size = size > 320 ? 320 : size;
+    size = size > 384 ? 384 : size;
 
     try {
       matrix = writer.encode(
@@ -90,7 +90,7 @@ class EscPosPrinterCommands {
         const EncodeHint(
           characterSet: "ISO-8859-1",
           errorCorrectionLevel: qr.ErrorCorrectionLevel.M,
-          margin: 0,
+          margin: 1,
         ),
       );
     } catch (e) {
@@ -648,10 +648,7 @@ class EscPosPrinterCommands {
   }
 
   EscPosPrinterCommands? newLineAlign(List<int>? align) {
-    _printerConnection.write([EscPosPrinterCommands.lF]);
-    if (align != null) {
-      _printerConnection.write(align);
-    }
+    _printerConnection.write(align ?? [EscPosPrinterCommands.lF]);
     return this;
   }
 
