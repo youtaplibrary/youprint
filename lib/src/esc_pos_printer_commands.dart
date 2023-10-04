@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart';
@@ -87,10 +88,10 @@ class EscPosPrinterCommands {
         BarcodeFormat.qrCode,
         size,
         size,
-        const EncodeHint(
+        EncodeHint(
           characterSet: "ISO-8859-1",
           errorCorrectionLevel: qr.ErrorCorrectionLevel.L,
-          margin: 2,
+          margin: Platform.isIOS ? null : 1,
         ),
       );
     } catch (e) {
