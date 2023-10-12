@@ -60,7 +60,8 @@ class PrinterTextParserImg implements PrinterTextParserElement {
     int size,
   ) {
     final Image? image = decodeImage(base64.decode(base64Image));
-    if (image == null) throw const EscPosParserException('Failed to parse base64 to image');
+    if (image == null)
+      throw const EscPosParserException('Failed to parse base64 to image');
     return PrinterTextParserImg.bytesToHexadecimalString(
       printerSize.imageToBytes(copyResize(image, width: size), gradient, size),
     );
@@ -89,7 +90,10 @@ class PrinterTextParserImg implements PrinterTextParserElement {
 
   @override
   PrinterTextParserImg print(EscPosPrinterCommands printerSocket) {
-    printerSocket.setAlign(Uint8List.fromList(_align)).printImage(_image);
+    printerSocket
+        .setAlign(Uint8List.fromList(_align))
+        .printImage(_image)
+        .setAlign(Uint8List.fromList(EscPosPrinterCommands.textAlignLeft));
     return this;
   }
 }
