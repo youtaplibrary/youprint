@@ -327,7 +327,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.2.2"
+    version: "0.3.0"
   zxing_lib:
     dependency: transitive
     description:
