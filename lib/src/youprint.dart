@@ -86,7 +86,8 @@ class Youprint {
     Duration timeout = const Duration(seconds: 5),
   }) async {
     try {
-      final FluetoothDevice fDevice = await Fluetooth().connect(device.id).timeout(timeout);
+      final FluetoothDevice fDevice =
+          await Fluetooth().connect(device.id).timeout(timeout);
       _selectedDevice = fDevice;
       _isConnected = true;
       return Future<ConnectionStatus>.value(ConnectionStatus.connected);
@@ -107,7 +108,8 @@ class Youprint {
   }
 
   Future<void> printReceiptText(
-    ReceiptSectionText receiptSectionText, {
+    ReceiptSectionText receiptSectionText,
+    String uuid, {
     int feedCount = 0,
     bool useCut = false,
     bool useRaster = false,
@@ -120,9 +122,11 @@ class Youprint {
     log('\n${receiptSectionText.getContent()}');
     final int contentLength = receiptSectionText.contentLength;
 
-    final BatchPrintOptions batchOptions = batchPrintOptions ?? BatchPrintOptions.full;
+    final BatchPrintOptions batchOptions =
+        batchPrintOptions ?? BatchPrintOptions.full;
 
-    final Iterable<List<Object>> startEndIter = batchOptions.getStartEnd(contentLength);
+    final Iterable<List<Object>> startEndIter =
+        batchOptions.getStartEnd(contentLength);
 
     for (final List<Object> startEnd in startEndIter) {
       final ReceiptSectionText section = receiptSectionText.getSection(
@@ -138,7 +142,7 @@ class Youprint {
         openDrawer: openDrawer,
       );
 
-      await _printProcess(bytes);
+      await _printProcess(bytes, uuid);
     }
   }
 
@@ -151,7 +155,8 @@ class Youprint {
   /// [feedCount] to create more space after printing process done
   /// [useCut] to cut printing process
   Future<void> printReceiptImage(
-    List<int> bytes, {
+    List<int> bytes,
+    String uuid, {
     int width = 120,
     int feedCount = 0,
     bool useCut = false,
@@ -166,7 +171,7 @@ class Youprint {
       useCut: true,
       openDrawer: openDrawer,
     );
-    await _printProcess(bytesResult);
+    await _printProcess(bytesResult, uuid);
   }
 
   static String base64toHexadecimal(String data, int size) {
@@ -184,7 +189,8 @@ class Youprint {
   /// [feedCount] to create more space after printing process done
   /// [useCut] to cut printing process
   Future<void> printQR(
-    String data, {
+    String data,
+    String uuid, {
     int size = 120,
     int feedCount = 0,
     bool useCut = false,
@@ -198,20 +204,20 @@ class Youprint {
       openDrawer: openDrawer,
     );
 
-    await _printProcess(bytes);
+    await _printProcess(bytes, uuid);
   }
 
   /// Reusable method for print text, image or QR based value [byteBuffer]
   /// Handler Android or iOS will use method writeBytes from ByteBuffer
   /// But in iOS more complex handler using service and characteristic
-  Future<void> _printProcess(List<int> byteBuffer) async {
+  Future<void> _printProcess(List<int> byteBuffer, String uuid) async {
     try {
-      if (!await Fluetooth().isConnected) {
+      if (!await Fluetooth().isConnected(uuid)) {
         _isConnected = false;
         _selectedDevice = null;
         return;
       }
-      await Fluetooth().sendBytes(byteBuffer);
+      await Fluetooth().sendBytes(byteBuffer, uuid);
       _escPosPrinter.clearTextsToPrint();
       _escPosPrinter.printerConnection.clearData();
     } on Exception catch (error) {

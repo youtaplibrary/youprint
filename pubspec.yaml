@@ -12,7 +12,10 @@ dependencies:
     sdk: flutter
   image: 3.2.2
   zxing_lib: 1.0.0
-  fluetooth: 0.0.6
+  fluetooth:
+    git:
+      url: https://github.com/youtaplibrary/fluetooth.git
+      ref: 0.1.0
 
 dev_dependencies:
   flutter_test:
