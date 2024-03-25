@@ -38,8 +38,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   // This widget is the root of your application.
   bool _isBusy = false;
-  List<FluetoothDevice>? _devices;
-  FluetoothDevice? _connectedDevice;
+  List<FluetoothDevice> _devices = [];
+  List<FluetoothDevice> _connectedDevice = [];
 
   final _youprint = Youprint();
 
@@ -67,25 +67,30 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
     setState(() => _isBusy = true);
-    final FluetoothDevice connectedDevice = await Fluetooth().connect(
+    await Fluetooth().connect(
       device.id,
     );
 
+    await Fluetooth().connectedDevice.then((connectedDevices) {
+      _connectedDevice = connectedDevices;
+    });
+
     setState(() {
       _isBusy = false;
-      _connectedDevice = connectedDevice;
     });
   }
 
-  Future<void> _disconnect() async {
+  Future<void> _disconnect(FluetoothDevice device) async {
     if (_isBusy) {
       return;
     }
     setState(() => _isBusy = true);
-    await Fluetooth().disconnect();
+    await Fluetooth().disconnectDevice(device.id);
+    await Fluetooth().connectedDevice.then((connectedDevices) {
+      _connectedDevice = connectedDevices;
+    });
     setState(() {
       _isBusy = false;
-      _connectedDevice = null;
     });
   }
 
@@ -204,7 +209,11 @@ class _MyHomePageState extends State<MyHomePage> {
     receiptText
         .addText('Cek e-menu restaurant di link yang disediakan di bawah ini');
 
-    await _youprint.printReceiptText(receiptText, feedCount: 2);
+    await _youprint.printReceiptText(
+      receiptText,
+      _connectedDevice.first.id,
+      feedCount: 2,
+    );
   }
 
   @override
@@ -215,20 +224,22 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: ListView.builder(
-          itemCount: _devices?.length ?? 0,
+          itemCount: _devices.length,
           itemBuilder: (context, index) {
-            final FluetoothDevice currentDevice = _devices![index];
+            final FluetoothDevice currentDevice = _devices[index];
             return ListTile(
               title: Text(currentDevice.name),
               subtitle: Text(currentDevice.id),
               trailing: ElevatedButton(
-                onPressed: _connectedDevice == currentDevice
-                    ? _disconnect
-                    : _connectedDevice == null && !_isBusy
+                onPressed: _connectedDevice.contains(currentDevice)
+                    ? () => _disconnect(currentDevice)
+                    : _connectedDevice.isNotEmpty && !_isBusy
                         ? () => _connect(currentDevice)
                         : null,
                 child: Text(
-                  _connectedDevice == currentDevice ? 'Disconnect' : 'Connect',
+                  _connectedDevice.contains(currentDevice)
+                      ? 'Disconnect'
+                      : 'Connect',
                 ),
               ),
             );
@@ -237,7 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed:
-            _connectedDevice == null ? _refreshPrinters : _incrementCounter,
+            _connectedDevice.isEmpty ? _refreshPrinters : _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
