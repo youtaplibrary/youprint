@@ -16,8 +16,6 @@ class Youprint {
 
   static Youprint get instance => _instance;
 
-  static final PrinterFeatures _printerFeatures = PrinterFeatures();
-
   static int get printerDpi => 203;
 
   static double get printerWidthMM => 48.0;
@@ -33,44 +31,10 @@ class Youprint {
     printerNbrCharactersPerLine,
   );
 
-  /// Register printer device name with its features.
-  /// Example:
-  /// ```dart
-  /// BluePrintPos.addPrinterFeatures(<String, Set<PrinterFeature>>{
-  ///   // The name of the device is from [FluetoothDevice.name]
-  ///   const PrinterFeatureRule.allowFor('PRJ-80AT-BT'): {
-  //      PrinterFeature.paperFullCut,
-  //    },
-  ///   // Allow all printers for this feature
-  ///   PrinterFeatureRule.allowAll: {PrinterFeature.paperFullCut},
-  /// });
-  /// ```
-  ///
-  /// If [Youprint.selectedDevice] name does not match, for example, for
-  /// [PrinterFeature.paperFullCut], then when printing using `useCut`
-  /// it will not produce any ESC command for paper full cut.
-  static void addPrinterFeatures(PrinterFeatureMap features) {
-    _printerFeatures.featureMap.addAll(features);
-  }
+  List<FluetoothDevice> _connectedDevices = [];
 
-  /// Check if the printer has the feature.
-  ///
-  /// This will return `true` if [feature] is allowed for the printer or
-  /// if [feature] is allowed for all printers.
-  static bool printerHasFeatureOf(String printerName, PrinterFeature feature) {
-    return _printerFeatures.hasFeatureOf(printerName, feature);
-  }
-
-  /// State to get bluetooth is connected
-  bool _isConnected = false;
-
-  /// Getter value [_isConnected]
-  bool get isConnected => _isConnected;
-
-  FluetoothDevice? _selectedDevice;
-
-  /// Selected device after connecting
-  FluetoothDevice? get selectedDevice => _selectedDevice;
+  /// get connected device
+  List<FluetoothDevice> get connectedDevices => _connectedDevices;
 
   /// return bluetooth device list, handler Android and iOS in [BlueScanner]
   Future<List<FluetoothDevice>> scan() {
@@ -86,24 +50,23 @@ class Youprint {
     Duration timeout = const Duration(seconds: 5),
   }) async {
     try {
-      final FluetoothDevice fDevice =
-          await Fluetooth().connect(device.id).timeout(timeout);
-      _selectedDevice = fDevice;
-      _isConnected = true;
+      await Fluetooth().connect(device.id).timeout(timeout);
+      await Fluetooth().connectedDevice.then((devices) {
+        _connectedDevices = devices;
+      });
       return Future<ConnectionStatus>.value(ConnectionStatus.connected);
     } on Exception catch (error) {
       log('$runtimeType - Error $error');
-      _isConnected = false;
-      _selectedDevice = null;
       return Future<ConnectionStatus>.value(ConnectionStatus.timeout);
     }
   }
 
   /// To stop communication between bluetooth device and application
-  Future<ConnectionStatus> disconnect() async {
-    await Fluetooth().disconnect();
-    _isConnected = false;
-    _selectedDevice = null;
+  Future<ConnectionStatus> disconnect(String uuid) async {
+    await Fluetooth().disconnectDevice(uuid);
+    await Fluetooth().connectedDevice.then((devices) {
+      _connectedDevices = devices;
+    });
     return ConnectionStatus.disconnect;
   }
 
@@ -213,16 +176,12 @@ class Youprint {
   Future<void> _printProcess(List<int> byteBuffer, String uuid) async {
     try {
       if (!await Fluetooth().isConnected(uuid)) {
-        _isConnected = false;
-        _selectedDevice = null;
         return;
       }
       await Fluetooth().sendBytes(byteBuffer, uuid);
       _escPosPrinter.clearTextsToPrint();
       _escPosPrinter.printerConnection.clearData();
     } on Exception catch (error) {
-      _isConnected = false;
-      _selectedDevice = null;
       _escPosPrinter.clearTextsToPrint();
       _escPosPrinter.printerConnection.clearData();
       log('$runtimeType - Error $error');
