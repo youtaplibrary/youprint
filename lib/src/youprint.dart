@@ -41,6 +41,10 @@ class Youprint {
     return Fluetooth().getAvailableDevices();
   }
 
+  Future<List<FluetoothDevice>> getConnectedDevices() {
+    return Fluetooth().getConnectedDevice();
+  }
+
   /// When connecting, reassign value [selectedDevice] from parameter [device]
   /// and if connection time more than [timeout]
   /// will return [ConnectionStatus.timeout]
@@ -51,7 +55,7 @@ class Youprint {
   }) async {
     try {
       await Fluetooth().connect(device.id).timeout(timeout);
-      await Fluetooth().connectedDevice.then((devices) {
+      await Fluetooth().getConnectedDevice().then((devices) {
         _connectedDevices = devices;
       });
       return Future<ConnectionStatus>.value(ConnectionStatus.connected);
@@ -64,7 +68,7 @@ class Youprint {
   /// To stop communication between bluetooth device and application
   Future<ConnectionStatus> disconnect(String uuid) async {
     await Fluetooth().disconnectDevice(uuid);
-    await Fluetooth().connectedDevice.then((devices) {
+    await Fluetooth().getConnectedDevice().then((devices) {
       _connectedDevices = devices;
     });
     return ConnectionStatus.disconnect;
