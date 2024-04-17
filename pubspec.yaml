@@ -15,7 +15,7 @@ dependencies:
   fluetooth:
     git:
       url: https://github.com/youtaplibrary/fluetooth.git
-      ref: fix/connected_devices_always_return_empty_in_ios
+      ref: 0.1.1
 
 dev_dependencies:
   flutter_test:
