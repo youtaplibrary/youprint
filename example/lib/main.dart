@@ -71,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
       device.id,
     );
 
-    await Fluetooth().connectedDevice.then((connectedDevices) {
+    await Fluetooth().getConnectedDevice().then((connectedDevices) {
       _connectedDevice = connectedDevices;
     });
 
@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     setState(() => _isBusy = true);
     await Fluetooth().disconnectDevice(device.id);
-    await Fluetooth().connectedDevice.then((connectedDevices) {
+    await Fluetooth().getConnectedDevice().then((connectedDevices) {
       _connectedDevice = connectedDevices;
     });
     setState(() {
