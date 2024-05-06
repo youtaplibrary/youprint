@@ -200,17 +200,16 @@ class _MyHomePageState extends State<MyHomePage> {
       rightStyle: ReceiptTextStyleType.normal,
     );
 
-    for (int i = 0; i < 20; i++) {
-      receiptText.addText('test dulu', alignment: ReceiptAlignment.left);
-    }
     receiptText.addText('--------------------------------');
 
     receiptText.addText('Scan kode QR berikut untuk melakukan pembayaran.');
 
-    receiptText.addQR(
-      '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
-      size: 480,
-    );
+    if (useQR) {
+      receiptText.addQR(
+        '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
+        size: 480,
+      );
+    }
 
     receiptText
         .addText('Cek e-menu restaurant di link yang disediakan di bawah ini');
@@ -251,8 +250,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed:
-            _connectedDevice.isEmpty ? _refreshPrinters : _incrementCounter,
+        onPressed: _connectedDevice.isEmpty
+            ? _refreshPrinters
+            : () => _incrementCounter(useLogo: false, useQR: false),
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
