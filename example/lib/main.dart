@@ -63,13 +63,19 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _connect(FluetoothDevice device) async {
-    if (_isBusy) {
-      return;
-    }
+    if (_isBusy) return;
+
     setState(() => _isBusy = true);
-    await Fluetooth().connect(
-      device.id,
-    );
+
+    try {
+      await Fluetooth().connect(
+        device.id,
+      );
+    } catch (_) {
+      setState(() {
+        _isBusy = false;
+      });
+    }
 
     await Fluetooth().getConnectedDevice().then((connectedDevices) {
       _connectedDevice = connectedDevices;
@@ -101,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _incrementCounter({
-    int totalItems = 10,
+    int totalItems = 1,
     bool useQR = true,
     bool useLogo = true,
     bool useBarcode = true,
@@ -232,10 +238,8 @@ class _MyHomePageState extends State<MyHomePage> {
               subtitle: Text(currentDevice.id),
               trailing: ElevatedButton(
                 onPressed: _connectedDevice.contains(currentDevice)
-                    ? () => _disconnect(currentDevice)
-                    : _connectedDevice.isNotEmpty && !_isBusy
-                        ? () => _connect(currentDevice)
-                        : null,
+                    ? () => _connect(currentDevice)
+                    : () => _connect(currentDevice),
                 child: Text(
                   _connectedDevice.contains(currentDevice)
                       ? 'Disconnect'
