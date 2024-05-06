@@ -15,7 +15,7 @@ dependencies:
   fluetooth:
     git:
       url: https://github.com/youtaplibrary/fluetooth.git
-      ref: 0.1.1
+      ref: fix/disconnect_printer_if_in_connected_device
 
 dev_dependencies:
   flutter_test:
