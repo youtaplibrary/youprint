@@ -94,7 +94,7 @@ packages:
     description:
       path: "."
       ref: "fix/disconnect_printer_if_in_connected_device"
-      resolved-ref: "1bc627153b3dc587b4c92b2581bb4b1f384c68ce"
+      resolved-ref: "03efe83e48f47ab7c012debfafe171da13670c4d"
       url: "https://github.com/youtaplibrary/fluetooth.git"
     source: git
     version: "0.1.1"
