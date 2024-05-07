@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
@@ -107,6 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _incrementCounter({
+    FluetoothDevice? device,
     int totalItems = 1,
     bool useQR = true,
     bool useLogo = true,
@@ -214,11 +216,15 @@ class _MyHomePageState extends State<MyHomePage> {
     receiptText
         .addText('Cek e-menu restaurant di link yang disediakan di bawah ini');
 
-    await _youprint.printReceiptText(
-      receiptText,
-      _connectedDevice.first.id,
-      feedCount: 2,
-    );
+    if (device == null) return;
+
+    log('cek ya ${receiptText.getContent()}');
+
+    // await _youprint.printReceiptText(
+    //   receiptText,
+    //   device.id,
+    //   feedCount: 2,
+    // );
   }
 
   @override
@@ -252,7 +258,12 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _connectedDevice.isEmpty
             ? _refreshPrinters
-            : () => _incrementCounter(useLogo: false, useQR: false),
+            : () {
+                for (var device in _connectedDevice) {
+                  _incrementCounter(
+                      device: device, useQR: false, useLogo: false);
+                }
+              },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
