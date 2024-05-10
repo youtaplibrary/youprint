@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
-import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:youprint/youprint.dart';
 
@@ -19,11 +19,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Youprint Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Youprint Demo'),
     );
   }
 }
@@ -37,87 +37,74 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // This widget is the root of your application.
-  bool _isBusy = false;
-  List<FluetoothDevice> _devices = [];
-  List<FluetoothDevice> _connectedDevice = [];
+  List<BluetoothDevice> _availableDevices = [];
+
+  bool _isScanning = false;
 
   final _youprint = Youprint();
-
-  Future<void> _refreshPrinters() async {
-    if (_isBusy) {
-      return;
-    }
-    setState(() => _isBusy = true);
-    final List<FluetoothDevice> devices =
-        await Fluetooth().getAvailableDevices();
-    setState(() {
-      _devices = devices;
-      _isBusy = false;
-    });
-  }
 
   @override
   void initState() {
     super.initState();
-    _refreshPrinters();
+    FlutterBluePlus.setLogLevel(LogLevel.verbose, color: false);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initBluetoothListener();
+      _scanDevices();
+    });
   }
 
-  Future<void> _connect(FluetoothDevice device) async {
-    if (_isBusy) return;
-
-    setState(() => _isBusy = true);
-
-    try {
-      await Fluetooth().connect(
-        device.id,
-      );
-    } catch (_) {
-      setState(() {
-        _isBusy = false;
-      });
+  Future<void> _initBluetoothListener() async {
+    if (Platform.isAndroid) {
+      await FlutterBluePlus.turnOn();
     }
 
-    await Fluetooth().getConnectedDevice().then((connectedDevices) {
-      _connectedDevice = connectedDevices;
-    });
+    FlutterBluePlus.isScanning.listen((isScanning) {
+      if (!isScanning) {
+        _availableDevices = FlutterBluePlus.lastScanResults
+            .map((element) => element.device)
+            .where((element) => element.platformName.isNotEmpty)
+            .toList();
+      }
 
-    setState(() {
-      _isBusy = false;
+      if (mounted) {
+        setState(() {
+          _isScanning = isScanning;
+        });
+      }
     });
   }
 
-  Future<void> _disconnect(FluetoothDevice device) async {
-    if (_isBusy) {
-      return;
+  Future<void> _scanDevices() async {
+    await _youprint.scan();
+  }
+
+  Future<void> _connectDevice(BluetoothDevice device) async {
+    await _youprint.connect(device, onConnected: () {
+      if (mounted) {
+        setState(() {});
+      }
+    }, onDisconnected: () {
+      setState(() {});
+    });
+  }
+
+  Future<void> _disconnectDevice(BluetoothDevice device) async {
+    final status = await _youprint.disconnect(device);
+
+    if (status == ConnectionStatus.disconnect) {
+      if (mounted) {
+        setState(() {});
+      }
     }
-    setState(() => _isBusy = true);
-    await Fluetooth().disconnectDevice(device.id);
-    await Fluetooth().getConnectedDevice().then((connectedDevices) {
-      _connectedDevice = connectedDevices;
-    });
-    setState(() {
-      _isBusy = false;
-    });
-  }
-
-  @override
-  void dispose() {
-    Fluetooth().disconnect();
-    super.dispose();
   }
 
   Future<void> _incrementCounter({
-    FluetoothDevice? device,
+    required BluetoothDevice device,
     int totalItems = 1,
     bool useQR = true,
     bool useLogo = true,
-    bool useBarcode = true,
   }) async {
-    if (_isBusy) {
-      return;
-    }
-
     /// Example for Print Image
     final ByteData logoBytes = await rootBundle.load(
       'assets/image.png',
@@ -204,7 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     receiptText.addText('--------------------------------');
 
-    receiptText.addText('Scan kode QR berikut untuk melakukan pembayaran.');
+    // receiptText.addText('Scan kode QR berikut untuk melakukan pembayaran.');
 
     if (useQR) {
       receiptText.addQR(
@@ -213,18 +200,12 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    receiptText
-        .addText('Cek e-menu restaurant di link yang disediakan di bawah ini');
-
-    if (device == null) return;
-
-    log('cek ya ${receiptText.getContent()}');
-
-    // await _youprint.printReceiptText(
-    //   receiptText,
-    //   device.id,
-    //   feedCount: 2,
-    // );
+    await _youprint.printReceiptText(
+      receiptText,
+      device.remoteId.str,
+      useCut: true,
+      feedCount: 2,
+    );
   }
 
   @override
@@ -232,41 +213,54 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          ElevatedButton(
+            onPressed: _scanDevices,
+            child: const Icon(Icons.refresh),
+          ),
+        ],
       ),
       body: Center(
-        child: ListView.builder(
-          itemCount: _devices.length,
-          itemBuilder: (context, index) {
-            final FluetoothDevice currentDevice = _devices[index];
-            return ListTile(
-              title: Text(currentDevice.name),
-              subtitle: Text(currentDevice.id),
-              trailing: ElevatedButton(
-                onPressed: _connectedDevice.contains(currentDevice)
-                    ? () => _connect(currentDevice)
-                    : () => _connect(currentDevice),
-                child: Text(
-                  _connectedDevice.contains(currentDevice)
-                      ? 'Disconnect'
-                      : 'Connect',
-                ),
+        child: _isScanning
+            ? const CircularProgressIndicator()
+            : ListView.builder(
+                itemCount: _availableDevices.length,
+                itemBuilder: (context, index) {
+                  final BluetoothDevice currentDevice =
+                      _availableDevices[index];
+                  return ListTile(
+                    title: Text(currentDevice.platformName),
+                    subtitle: Text(currentDevice.remoteId.str),
+                    trailing: ElevatedButton(
+                      onPressed: !FlutterBluePlus.connectedDevices
+                              .contains(currentDevice)
+                          ? () => _connectDevice(currentDevice)
+                          : () => _disconnectDevice(currentDevice),
+                      child: Text(
+                        FlutterBluePlus.connectedDevices.contains(currentDevice)
+                            ? 'Disconnect'
+                            : 'Connect',
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _connectedDevice.isEmpty
-            ? _refreshPrinters
-            : () {
-                for (var device in _connectedDevice) {
-                  _incrementCounter(
-                      device: device, useQR: false, useLogo: false);
+      floatingActionButton: _isScanning
+          ? const SizedBox.shrink()
+          : FloatingActionButton(
+              onPressed: () async {
+                for (var device in FlutterBluePlus.connectedDevices) {
+                  await _incrementCounter(
+                    device: device,
+                    useQR: false,
+                    useLogo: false,
+                  );
                 }
               },
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+              tooltip: 'Print',
+              child: const Icon(Icons.print),
+            ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

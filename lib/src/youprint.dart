@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:youprint/src/extensions/bluetooth_extension.dart';
 import 'package:youprint/src/receipt/receipt_image.dart';
 import 'package:youprint/youprint.dart';
-
-export 'package:fluetooth/fluetooth.dart' show FluetoothDevice;
 
 enum PaperSize { mm58, mm80 }
 
@@ -22,6 +21,8 @@ class Youprint {
 
   static int get printerNbrCharactersPerLine => 32;
 
+  static String get printerServiceId => '18f0';
+
   static final DeviceConnection _deviceConnection = DeviceConnection();
 
   static final AsyncEscPosPrinter _escPosPrinter = AsyncEscPosPrinter(
@@ -31,46 +32,59 @@ class Youprint {
     printerNbrCharactersPerLine,
   );
 
-  List<FluetoothDevice> _connectedDevices = [];
-
   /// get connected device
-  List<FluetoothDevice> get connectedDevices => _connectedDevices;
+  List<BluetoothDevice> get connectedDevices =>
+      FlutterBluePlus.connectedDevices;
 
   /// return bluetooth device list, handler Android and iOS in [BlueScanner]
-  Future<List<FluetoothDevice>> scan() {
-    return Fluetooth().getAvailableDevices();
+  Future<List<BluetoothDevice>> scan() async {
+    await FlutterBluePlus.startScan(
+      withServices: [Guid(printerServiceId)],
+      timeout: const Duration(seconds: 5),
+    );
+
+    await FlutterBluePlus.isScanning
+        .where((isScanning) => isScanning == false)
+        .first;
+
+    final result = FlutterBluePlus.lastScanResults
+        .map((element) => element.device)
+        .where((element) => element.platformName.isNotEmpty)
+        .toList();
+
+    return result;
   }
 
-  Future<List<FluetoothDevice>> getConnectedDevices() {
-    return Fluetooth().getConnectedDevice();
-  }
-
-  /// When connecting, reassign value [selectedDevice] from parameter [device]
-  /// and if connection time more than [timeout]
-  /// will return [ConnectionStatus.timeout]
-  /// When connection success, will return [ConnectionStatus.connected]
-  Future<ConnectionStatus> connect(
-    FluetoothDevice device, {
-    Duration timeout = const Duration(seconds: 5),
+  /// When connecting, [discoverServices] and [requestMtu]
+  Future<void> connect(
+    BluetoothDevice device, {
+    Duration timeout = const Duration(seconds: 10),
+    Function? onConnected,
+    Function? onDisconnected,
   }) async {
-    try {
-      await Fluetooth().connect(device.id).timeout(timeout);
-      await Fluetooth().getConnectedDevice().then((devices) {
-        _connectedDevices = devices;
-      });
-      return Future<ConnectionStatus>.value(ConnectionStatus.connected);
-    } on Exception catch (error) {
-      log('$runtimeType - Error $error');
-      return Future<ConnectionStatus>.value(ConnectionStatus.timeout);
-    }
+    await device.connect(autoConnect: true, mtu: null, timeout: timeout);
+    device.connectionState.listen((state) async {
+      if (state == BluetoothConnectionState.connected) {
+        await device.discoverServices();
+        await device.requestMtu(512);
+
+        if (onConnected != null) {
+          onConnected();
+        }
+      } else if (state == BluetoothConnectionState.disconnected) {
+        if (onDisconnected != null) {
+          onDisconnected();
+        }
+      }
+    });
   }
 
   /// To stop communication between bluetooth device and application
-  Future<ConnectionStatus> disconnect(String uuid) async {
-    await Fluetooth().disconnectDevice(uuid);
-    await Fluetooth().getConnectedDevice().then((devices) {
-      _connectedDevices = devices;
-    });
+  Future<ConnectionStatus> disconnect(BluetoothDevice device) async {
+    await device.disconnect();
+    await device.connectionState
+        .where((val) => val == BluetoothConnectionState.disconnected)
+        .first;
     return ConnectionStatus.disconnect;
   }
 
@@ -111,6 +125,28 @@ class Youprint {
 
       await _printProcess(bytes, uuid);
     }
+  }
+
+  Future<Uint8List> getParsedBytes(
+    ReceiptSectionText receiptSectionText, {
+    int feedCount = 0,
+    bool useCut = false,
+    bool openDrawer = false,
+    double duration = 0,
+    PaperSize paperSize = PaperSize.mm58,
+  }) async {
+    log('\n${receiptSectionText.getContent()}');
+    _escPosPrinter.addTextToPrint(receiptSectionText.getContent());
+    final bytes = await _escPosPrinter.parsedToBytes(
+      feedCount: feedCount,
+      useCut: useCut,
+      openDrawer: openDrawer,
+    );
+
+    _escPosPrinter.clearTextsToPrint();
+    _escPosPrinter.printerConnection.clearData();
+
+    return bytes;
   }
 
   static int pxToMM(int pixel) {
@@ -179,10 +215,33 @@ class Youprint {
   /// But in iOS more complex handler using service and characteristic
   Future<void> _printProcess(List<int> byteBuffer, String uuid) async {
     try {
-      if (!await Fluetooth().isConnected(uuid)) {
+      final devices = FlutterBluePlus.connectedDevices
+          .where((device) => device.remoteId.str == uuid)
+          .toList();
+
+      if (devices.isEmpty) {
         return;
       }
-      await Fluetooth().sendBytes(byteBuffer, uuid);
+
+      final device = devices.first;
+
+      final services = device.servicesList
+          .where((element) => element.serviceUuid == Guid(printerServiceId));
+
+      if (services.isEmpty) return;
+
+      final service = services.first;
+
+      var characteristics =
+          service.characteristics.where((c) => c.properties.write);
+
+      if (characteristics.isEmpty) return;
+
+      final c = characteristics.first;
+
+      if (c.properties.write) {
+        c.splitWrite(byteBuffer);
+      }
     } on Exception catch (error) {
       log('$runtimeType PrintProcess - Error $error');
     }
