@@ -5,7 +5,6 @@ import 'dart:math' as math;
 import 'package:example/int_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:youprint/youprint.dart';
 
