@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:youprint/src/extensions/bluetooth_extension.dart';
 import 'package:youprint/src/receipt/receipt_image.dart';
 import 'package:youprint/youprint.dart';
@@ -232,7 +231,7 @@ class Youprint {
 
       final service = services.first;
 
-      var characteristics =
+      final characteristics =
           service.characteristics.where((c) => c.properties.write);
 
       if (characteristics.isEmpty) return;
@@ -240,7 +239,7 @@ class Youprint {
       final c = characteristics.first;
 
       if (c.properties.write) {
-        c.splitWrite(byteBuffer);
+        await c.splitWrite(byteBuffer);
       }
     } on Exception catch (error) {
       log('$runtimeType PrintProcess - Error $error');
