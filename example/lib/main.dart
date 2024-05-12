@@ -50,6 +50,19 @@ class _MyHomePageState extends State<MyHomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initBluetoothListener();
       _scanDevices();
+
+      FlutterBluePlus.events.onConnectionStateChanged.listen((event) {
+        if (event.connectionState == BluetoothConnectionState.connected) {
+          if (mounted) {
+            setState(() {});
+          }
+        } else if (event.connectionState ==
+            BluetoothConnectionState.disconnected) {
+          if (mounted) {
+            setState(() {});
+          }
+        }
+      });
     });
   }
 
@@ -79,13 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _connectDevice(BluetoothDevice device) async {
-    await _youprint.connect(device, onConnected: () {
-      if (mounted) {
-        setState(() {});
-      }
-    }, onDisconnected: () {
-      setState(() {});
-    });
+    await _youprint.connect(device);
   }
 
   Future<void> _disconnectDevice(BluetoothDevice device) async {

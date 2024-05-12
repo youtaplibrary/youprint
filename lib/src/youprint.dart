@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:youprint/src/extensions/bluetooth_extension.dart';
@@ -55,27 +56,17 @@ class Youprint {
   }
 
   /// When connecting, [discoverServices] and [requestMtu]
-  Future<void> connect(
+  Future<ConnectionStatus> connect(
     BluetoothDevice device, {
     Duration timeout = const Duration(seconds: 10),
-    Function? onConnected,
-    Function? onDisconnected,
   }) async {
     await device.connect(autoConnect: true, mtu: null, timeout: timeout);
-    device.connectionState.listen((state) async {
-      if (state == BluetoothConnectionState.connected) {
-        await device.discoverServices();
-        await device.requestMtu(512);
-
-        if (onConnected != null) {
-          onConnected();
-        }
-      } else if (state == BluetoothConnectionState.disconnected) {
-        if (onDisconnected != null) {
-          onDisconnected();
-        }
-      }
-    });
+    await device.connectionState
+        .where((val) => val == BluetoothConnectionState.connected)
+        .first;
+    if (Platform.isAndroid) await device.requestMtu(512);
+    await device.discoverServices();
+    return ConnectionStatus.connected;
   }
 
   /// To stop communication between bluetooth device and application
@@ -219,6 +210,10 @@ class Youprint {
           .toList();
 
       if (devices.isEmpty) {
+        _escPosPrinter.clearTextsToPrint();
+        _escPosPrinter.printerConnection.clearData();
+
+        log('$runtimeType - device not found');
         return;
       }
 
@@ -227,14 +222,26 @@ class Youprint {
       final services = device.servicesList
           .where((element) => element.serviceUuid == Guid(printerServiceId));
 
-      if (services.isEmpty) return;
+      if (services.isEmpty) {
+        _escPosPrinter.clearTextsToPrint();
+        _escPosPrinter.printerConnection.clearData();
+
+        log('$runtimeType - service not found');
+        return;
+      }
 
       final service = services.first;
 
       final characteristics =
           service.characteristics.where((c) => c.properties.write);
 
-      if (characteristics.isEmpty) return;
+      if (characteristics.isEmpty) {
+        _escPosPrinter.clearTextsToPrint();
+        _escPosPrinter.printerConnection.clearData();
+
+        log('$runtimeType - characteristic not found');
+        return;
+      }
 
       final c = characteristics.first;
 
