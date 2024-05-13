@@ -17,25 +17,24 @@ class AsyncEscPosPrinter extends EscPosPrinterSize {
 
   List<String?> textsToPrint = [];
 
-  AsyncEscPosPrinter setTextsToPrint(List<String?> textsToPrint) {
-    this.textsToPrint = textsToPrint;
-    return this;
-  }
-
   AsyncEscPosPrinter addTextToPrint(String? textToPrint) {
-    if (textToPrint != null) {
-      List<String?> tmp = List.filled(textToPrint.length + 1, null);
-      tmp.setRange(0, textsToPrint.length, tmp, 0);
-      tmp[textsToPrint.length] = textToPrint;
-      textsToPrint = tmp;
-      return this;
+    try {
+      if (textToPrint != null) {
+        List<String?> tmp = List.from(textsToPrint); // Copy existing list
+        tmp.add(textToPrint); // Add new text to the list
+        textsToPrint = tmp; // Assign the updated list back to textsToPrint
+        return this;
+      }
+    } catch (e) {
+      log('$runtimeType - $e ');
+      clearTextsToPrint();
+      printerConnection.clearData();
     }
     return this;
   }
 
-  AsyncEscPosPrinter clearTextsToPrint() {
+  void clearTextsToPrint() {
     textsToPrint = [];
-    return this;
   }
 
   Future<Uint8List> parsedToBytes({
@@ -68,8 +67,6 @@ class AsyncEscPosPrinter extends EscPosPrinterSize {
     } catch (e) {
       log('$runtimeType - error $e');
     }
-
-    log('${printerConnection.getData()}');
     return printerConnection.getData();
   }
 }

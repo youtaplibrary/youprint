@@ -183,13 +183,11 @@ class Youprint {
         return;
       }
       await Fluetooth().sendBytes(byteBuffer, uuid);
-      _escPosPrinter.clearTextsToPrint();
-      _escPosPrinter.printerConnection.clearData();
     } on Exception catch (error) {
-      _escPosPrinter.clearTextsToPrint();
-      _escPosPrinter.printerConnection.clearData();
-      log('$runtimeType - Error $error');
-      return;
+      log('$runtimeType PrintProcess - Error $error');
     }
+
+    _escPosPrinter.clearTextsToPrint();
+    _escPosPrinter.printerConnection.clearData();
   }
 }

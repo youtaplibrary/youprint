@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
@@ -63,13 +64,19 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _connect(FluetoothDevice device) async {
-    if (_isBusy) {
-      return;
-    }
+    if (_isBusy) return;
+
     setState(() => _isBusy = true);
-    await Fluetooth().connect(
-      device.id,
-    );
+
+    try {
+      await Fluetooth().connect(
+        device.id,
+      );
+    } catch (_) {
+      setState(() {
+        _isBusy = false;
+      });
+    }
 
     await Fluetooth().getConnectedDevice().then((connectedDevices) {
       _connectedDevice = connectedDevices;
@@ -101,7 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _incrementCounter({
-    int totalItems = 10,
+    FluetoothDevice? device,
+    int totalItems = 1,
     bool useQR = true,
     bool useLogo = true,
     bool useBarcode = true,
@@ -194,26 +202,29 @@ class _MyHomePageState extends State<MyHomePage> {
       rightStyle: ReceiptTextStyleType.normal,
     );
 
-    for (int i = 0; i < 20; i++) {
-      receiptText.addText('test dulu', alignment: ReceiptAlignment.left);
-    }
     receiptText.addText('--------------------------------');
 
     receiptText.addText('Scan kode QR berikut untuk melakukan pembayaran.');
 
-    receiptText.addQR(
-      '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
-      size: 480,
-    );
+    if (useQR) {
+      receiptText.addQR(
+        '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
+        size: 480,
+      );
+    }
 
     receiptText
         .addText('Cek e-menu restaurant di link yang disediakan di bawah ini');
 
-    await _youprint.printReceiptText(
-      receiptText,
-      _connectedDevice.first.id,
-      feedCount: 2,
-    );
+    if (device == null) return;
+
+    log('cek ya ${receiptText.getContent()}');
+
+    // await _youprint.printReceiptText(
+    //   receiptText,
+    //   device.id,
+    //   feedCount: 2,
+    // );
   }
 
   @override
@@ -232,10 +243,8 @@ class _MyHomePageState extends State<MyHomePage> {
               subtitle: Text(currentDevice.id),
               trailing: ElevatedButton(
                 onPressed: _connectedDevice.contains(currentDevice)
-                    ? () => _disconnect(currentDevice)
-                    : _connectedDevice.isNotEmpty && !_isBusy
-                        ? () => _connect(currentDevice)
-                        : null,
+                    ? () => _connect(currentDevice)
+                    : () => _connect(currentDevice),
                 child: Text(
                   _connectedDevice.contains(currentDevice)
                       ? 'Disconnect'
@@ -247,8 +256,14 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed:
-            _connectedDevice.isEmpty ? _refreshPrinters : _incrementCounter,
+        onPressed: _connectedDevice.isEmpty
+            ? _refreshPrinters
+            : () {
+                for (var device in _connectedDevice) {
+                  _incrementCounter(
+                      device: device, useQR: false, useLogo: false);
+                }
+              },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
