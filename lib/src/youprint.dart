@@ -60,6 +60,7 @@ class Youprint {
     BluetoothDevice device, {
     Duration timeout = const Duration(seconds: 10),
   }) async {
+    if (device.isConnected) return ConnectionStatus.connected;
     await device.connect(autoConnect: true, mtu: null, timeout: timeout);
     await device.connectionState
         .where((val) => val == BluetoothConnectionState.connected)
@@ -255,7 +256,9 @@ class Youprint {
       final c = characteristics.first;
 
       if (c.properties.write) {
-        await c.splitWrite(byteBuffer);
+        if (device.isConnected) {
+          await c.splitWrite(byteBuffer);
+        }
       }
     } on Exception catch (error) {
       log('$runtimeType PrintProcess - Error $error');
