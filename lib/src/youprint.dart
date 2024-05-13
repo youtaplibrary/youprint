@@ -113,6 +113,9 @@ class Youprint {
         openDrawer: openDrawer,
       );
 
+      _escPosPrinter.clearTextsToPrint();
+      _escPosPrinter.printerConnection.clearData();
+
       await _printProcess(bytes, uuid);
     }
   }
@@ -164,6 +167,9 @@ class Youprint {
       useCut: true,
       openDrawer: openDrawer,
     );
+
+    _escPosPrinter.clearTextsToPrint();
+    _escPosPrinter.printerConnection.clearData();
     await _printProcess(bytesResult, uuid);
   }
 
