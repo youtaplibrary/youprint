@@ -32,10 +32,6 @@ dependencies:
     sdk: flutter
   youprint:
     path: ../
-  fluetooth:
-    git:
-      url: https://github.com/youtaplibrary/fluetooth.git
-      ref: fix/disconnect_printer_if_in_connected_device
   image: 3.2.2
   intl: 0.18.1
 
