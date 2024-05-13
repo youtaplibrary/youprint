@@ -203,6 +203,9 @@ class Youprint {
       openDrawer: openDrawer,
     );
 
+    _escPosPrinter.clearTextsToPrint();
+    _escPosPrinter.printerConnection.clearData();
+
     await _printProcess(bytes, uuid);
   }
 
