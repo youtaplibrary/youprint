@@ -61,7 +61,7 @@ class Youprint {
     Duration timeout = const Duration(seconds: 10),
   }) async {
     if (device.isConnected) return ConnectionStatus.connected;
-    await device.connect(autoConnect: true, mtu: null, timeout: timeout);
+    await device.connect(autoConnect: false, mtu: null, timeout: timeout);
     await device.connectionState
         .where((val) => val == BluetoothConnectionState.connected)
         .first;
