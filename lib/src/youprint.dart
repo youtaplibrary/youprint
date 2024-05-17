@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:youprint/src/extensions/bluetooth_extension.dart';
@@ -61,11 +60,7 @@ class Youprint {
     Duration timeout = const Duration(seconds: 10),
   }) async {
     if (device.isConnected) return ConnectionStatus.connected;
-    await device.connect(autoConnect: true, mtu: null, timeout: timeout);
-    await device.connectionState
-        .where((val) => val == BluetoothConnectionState.connected)
-        .first;
-    if (Platform.isAndroid) await device.requestMtu(512);
+    await device.connect(autoConnect: false, mtu: 512, timeout: timeout);
     await device.discoverServices();
     return ConnectionStatus.connected;
   }
