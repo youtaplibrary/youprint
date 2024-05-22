@@ -60,7 +60,7 @@ class Youprint {
     Duration timeout = const Duration(seconds: 10),
   }) async {
     if (device.isConnected) return ConnectionStatus.connected;
-    await device.connect(autoConnect: false, mtu: 512, timeout: timeout);
+    await device.connect(autoConnect: false, mtu: 135, timeout: timeout);
     await device.discoverServices();
     return ConnectionStatus.connected;
   }
