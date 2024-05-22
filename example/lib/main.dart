@@ -39,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<BluetoothDevice> _availableDevices = [];
 
   bool _isScanning = false;
+  bool _isPrinting = false;
 
   final _youprint = Youprint();
 
@@ -117,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     /// Example for Print Text
-    final ReceiptSectionText receiptText = ReceiptSectionText();
+    ReceiptSectionText receiptText = ReceiptSectionText();
 
     if (useLogo) {
       receiptText.addImage(
@@ -197,12 +198,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
     receiptText.addText('--------------------------------');
 
-    // receiptText.addText('Scan kode QR berikut untuk melakukan pembayaran.');
+    receiptText.addText('Scan kode QR berikut untuk melakukan pembayaran.');
 
     if (useQR) {
       receiptText.addQR(
         '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
-        size: 480,
+        size: 400,
       );
     }
 
@@ -255,15 +256,19 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: _isScanning
           ? const SizedBox.shrink()
           : FloatingActionButton(
-              onPressed: () async {
-                for (var device in FlutterBluePlus.connectedDevices) {
-                  await _incrementCounter(
-                    device: device,
-                    useQR: false,
-                    useLogo: false,
-                  );
-                }
-              },
+              onPressed: _isPrinting
+                  ? null
+                  : () async {
+                      setState(() => _isPrinting = true);
+                      for (var device in FlutterBluePlus.connectedDevices) {
+                        await _incrementCounter(
+                          device: device,
+                          useQR: true,
+                          useLogo: true,
+                        );
+                      }
+                      setState(() => _isPrinting = false);
+                    },
               tooltip: 'Print',
               child: const Icon(Icons.print),
             ), // This trailing comma makes auto-formatting nicer for build methods.
