@@ -8,7 +8,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 //    3. The characteristic must be designed to support split data
 extension SplitWrite on BluetoothCharacteristic {
   Future<void> splitWrite(List<int> value, {int timeout = 15}) async {
-    int chunk = (device.mtuNow >= 135 ? 135 : device.mtuNow) - 3;
+    int chunk = (device.mtuNow >= 200 ? 200 : device.mtuNow) - 3;
     for (int i = 0; i < value.length; i += chunk) {
       List<int> subValue = value.sublist(i, min(i + chunk, value.length));
       await write(
