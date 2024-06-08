@@ -1,7 +1,6 @@
 library youprint;
 
 export 'package:fluetooth/fluetooth.dart';
-export 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 export 'src/async/async_esc_pos_printer.dart';
 export 'src/connection/connection.dart';

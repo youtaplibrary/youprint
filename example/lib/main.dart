@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
@@ -36,7 +35,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<BluetoothDevice> _availableDevices = [];
+  List<FluetoothDevice> _availableDevices = [];
 
   bool _isScanning = false;
   bool _isPrinting = false;
@@ -46,57 +45,29 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    FlutterBluePlus.setLogLevel(LogLevel.verbose, color: false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initBluetoothListener();
       _scanDevices();
-
-      FlutterBluePlus.events.onConnectionStateChanged.listen((event) {
-        if (event.connectionState == BluetoothConnectionState.connected) {
-          if (mounted) {
-            setState(() {});
-          }
-        } else if (event.connectionState ==
-            BluetoothConnectionState.disconnected) {
-          if (mounted) {
-            setState(() {});
-          }
-        }
-      });
-    });
-  }
-
-  Future<void> _initBluetoothListener() async {
-    if (Platform.isAndroid) {
-      await FlutterBluePlus.turnOn();
-    }
-
-    FlutterBluePlus.isScanning.listen((isScanning) {
-      if (!isScanning) {
-        _availableDevices = FlutterBluePlus.lastScanResults
-            .map((element) => element.device)
-            .where((element) => element.platformName.isNotEmpty)
-            .toList();
-      }
-
-      if (mounted) {
-        setState(() {
-          _isScanning = isScanning;
-        });
-      }
     });
   }
 
   Future<void> _scanDevices() async {
-    await _youprint.scan();
+    setState(() {
+      _isScanning = true;
+    });
+    final devices = await _youprint.scan();
+
+    setState(() {
+      _availableDevices = devices;
+      _isScanning = false;
+    });
   }
 
-  Future<void> _connectDevice(BluetoothDevice device) async {
+  Future<void> _connectDevice(FluetoothDevice device) async {
     await _youprint.connect(device);
   }
 
-  Future<void> _disconnectDevice(BluetoothDevice device) async {
+  Future<void> _disconnectDevice(FluetoothDevice device) async {
     final status = await _youprint.disconnect(device);
 
     if (status == ConnectionStatus.disconnect) {
@@ -107,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _incrementCounter({
-    required BluetoothDevice device,
+    required FluetoothDevice device,
     int totalItems = 1,
     bool useQR = true,
     bool useLogo = true,
@@ -209,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     await _youprint.printReceiptText(
       receiptText,
-      device.remoteId.str,
+      device.id,
       useCut: true,
       feedCount: 2,
     );
@@ -233,20 +204,31 @@ class _MyHomePageState extends State<MyHomePage> {
             : ListView.builder(
                 itemCount: _availableDevices.length,
                 itemBuilder: (context, index) {
-                  final BluetoothDevice currentDevice =
+                  final FluetoothDevice currentDevice =
                       _availableDevices[index];
                   return ListTile(
-                    title: Text(currentDevice.platformName),
-                    subtitle: Text(currentDevice.remoteId.str),
+                    title: Text(currentDevice.name),
+                    subtitle: Text(currentDevice.id),
                     trailing: ElevatedButton(
-                      onPressed: !FlutterBluePlus.connectedDevices
-                              .contains(currentDevice)
-                          ? () => _connectDevice(currentDevice)
-                          : () => _disconnectDevice(currentDevice),
-                      child: Text(
-                        FlutterBluePlus.connectedDevices.contains(currentDevice)
-                            ? 'Disconnect'
-                            : 'Connect',
+                      onPressed: () async {
+                        final connectedDevices =
+                            await _youprint.connectedDevices;
+                        if (!connectedDevices.contains(currentDevice)) {
+                          await _connectDevice(currentDevice);
+                        } else {
+                          await _disconnectDevice(currentDevice);
+                        }
+
+                        setState(() {});
+                      },
+                      child: FutureBuilder<bool>(
+                        future: Fluetooth().isConnected(currentDevice.id),
+                        builder: (context, snapshotData) {
+                          final isConnected = snapshotData.data;
+                          return Text(
+                            isConnected == true ? 'Disconnect' : 'Connect',
+                          );
+                        },
                       ),
                     ),
                   );
@@ -260,7 +242,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   ? null
                   : () async {
                       setState(() => _isPrinting = true);
-                      for (var device in FlutterBluePlus.connectedDevices) {
+                      final connectedDevices = await _youprint.connectedDevices;
+                      for (var device in connectedDevices) {
                         await _incrementCounter(
                           device: device,
                           useQR: true,
