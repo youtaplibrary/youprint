@@ -45,8 +45,14 @@ class Youprint {
     FluetoothDevice device, {
     Duration timeout = const Duration(seconds: 10),
   }) async {
-    await Fluetooth().connect(device.id).timeout(timeout);
     bool isConnected = await Fluetooth().isConnected(device.id);
+
+    if (isConnected) {
+      await disconnect(device);
+    }
+
+    await Fluetooth().connect(device.id).timeout(timeout);
+    isConnected = await Fluetooth().isConnected(device.id);
     return isConnected
         ? ConnectionStatus.connected
         : ConnectionStatus.disconnect;
@@ -276,6 +282,7 @@ class Youprint {
       await Fluetooth().sendBytes(byteBuffer, device.id);
     } on Exception catch (error) {
       log('$runtimeType PrintProcess - Error $error');
+      await Fluetooth().disconnectDevice(uuid);
     }
 
     _escPosPrinter.clearTextsToPrint();
