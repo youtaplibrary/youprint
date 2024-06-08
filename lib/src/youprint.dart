@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:youprint/src/extensions/bluetooth_extension.dart';
@@ -54,6 +55,12 @@ class Youprint {
     return result;
   }
 
+  /// return bluetooth device list, handler Android and iOS in [BlueScanner]
+  Future<List<FluetoothDevice>> scanClassic() async {
+    final devices = await Fluetooth().getAvailableDevices();
+    return devices;
+  }
+
   /// When connecting, [discoverServices] and [requestMtu]
   Future<ConnectionStatus> connect(
     BluetoothDevice device, {
@@ -65,6 +72,17 @@ class Youprint {
     return ConnectionStatus.connected;
   }
 
+  Future<ConnectionStatus> connectClassic(
+    FluetoothDevice device, {
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    await Fluetooth().connect(device.id).timeout(timeout);
+    bool isConnected = await Fluetooth().isConnected(device.id);
+    return isConnected
+        ? ConnectionStatus.connected
+        : ConnectionStatus.disconnect;
+  }
+
   /// To stop communication between bluetooth device and application
   Future<ConnectionStatus> disconnect(BluetoothDevice device) async {
     await device.disconnect();
@@ -72,6 +90,15 @@ class Youprint {
         .where((val) => val == BluetoothConnectionState.disconnected)
         .first;
     return ConnectionStatus.disconnect;
+  }
+
+  /// To stop communication between bluetooth device and application
+  Future<ConnectionStatus> disconnectClassic(FluetoothDevice device) async {
+    await Fluetooth().disconnectDevice(device.id);
+    bool isConnected = await Fluetooth().isConnected(device.id);
+    return isConnected
+        ? ConnectionStatus.connected
+        : ConnectionStatus.disconnect;
   }
 
   Future<void> printReceiptText(
@@ -112,7 +139,11 @@ class Youprint {
       _escPosPrinter.clearTextsToPrint();
       _escPosPrinter.printerConnection.clearData();
 
-      await _printProcess(bytes, uuid);
+      if (Platform.isIOS) {
+        await _printProcess(bytes, uuid);
+      } else {
+        await _printProcessClassic(bytes, uuid);
+      }
     }
   }
 
@@ -166,7 +197,12 @@ class Youprint {
 
     _escPosPrinter.clearTextsToPrint();
     _escPosPrinter.printerConnection.clearData();
-    await _printProcess(bytesResult, uuid);
+
+    if (Platform.isIOS) {
+      await _printProcess(bytesResult, uuid);
+    } else {
+      await _printProcessClassic(bytesResult, uuid);
+    }
   }
 
   static String base64toHexadecimal(String data, int size) {
@@ -202,7 +238,11 @@ class Youprint {
     _escPosPrinter.clearTextsToPrint();
     _escPosPrinter.printerConnection.clearData();
 
-    await _printProcess(bytes, uuid);
+    if (Platform.isIOS) {
+      await _printProcess(bytes, uuid);
+    } else {
+      await _printProcessClassic(bytes, uuid);
+    }
   }
 
   /// Reusable method for print text, image or QR based value [byteBuffer]
@@ -253,6 +293,35 @@ class Youprint {
       if (c.properties.write) {
         await c.splitWrite(byteBuffer);
       }
+    } on Exception catch (error) {
+      log('$runtimeType PrintProcess - Error $error');
+    }
+
+    _escPosPrinter.clearTextsToPrint();
+    _escPosPrinter.printerConnection.clearData();
+  }
+
+  /// Reusable method for print text, image or QR based value [byteBuffer]
+  /// Handler Android or iOS will use method writeBytes from ByteBuffer
+  /// But in iOS more complex handler using service and characteristic
+  Future<void> _printProcessClassic(List<int> byteBuffer, String uuid) async {
+    try {
+      final connectedDevices = await Fluetooth().getConnectedDevice();
+
+      final devices =
+          connectedDevices.where((device) => device.id == uuid).toList();
+
+      if (devices.isEmpty) {
+        _escPosPrinter.clearTextsToPrint();
+        _escPosPrinter.printerConnection.clearData();
+
+        log('$runtimeType - device not found');
+        return;
+      }
+
+      final device = devices.first;
+
+      await Fluetooth().sendBytes(byteBuffer, device.id);
     } on Exception catch (error) {
       log('$runtimeType PrintProcess - Error $error');
     }
