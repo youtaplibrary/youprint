@@ -93,11 +93,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "fix/disconnect_printer_if_in_connected_device"
-      resolved-ref: "39b1c34fbc7e673af1ca15a302a99a3f4568c158"
+      ref: "0.1.2"
+      resolved-ref: "0907040c5f09493efe83ace48c7f9c59c8ab92a7"
       url: "https://github.com/youtaplibrary/fluetooth.git"
     source: git
-    version: "0.1.1"
+    version: "0.1.2"
   flutter:
     dependency: "direct main"
     description: flutter
