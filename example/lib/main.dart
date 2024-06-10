@@ -178,12 +178,14 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    await _youprint.printReceiptText(
-      receiptText,
-      device.id,
-      useCut: true,
-      feedCount: 2,
-    );
+    for (int i = 0; i < 2; i++) {
+      await _youprint.printReceiptText(
+        receiptText,
+        device.id,
+        useCut: true,
+        feedCount: 2,
+      );
+    }
   }
 
   @override

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:youprint/src/receipt/receipt_image.dart';
@@ -19,8 +18,6 @@ class Youprint {
   static double get printerWidthMM => 48.0;
 
   static int get printerNbrCharactersPerLine => 32;
-
-  static String get printerServiceId => '18f0';
 
   static final DeviceConnection _deviceConnection = DeviceConnection();
 
@@ -105,11 +102,7 @@ class Youprint {
       _escPosPrinter.clearTextsToPrint();
       _escPosPrinter.printerConnection.clearData();
 
-      if (Platform.isIOS) {
-        await _printProcess(bytes, uuid);
-      } else {
-        await _printProcess(bytes, uuid);
-      }
+      await _printProcess(bytes, uuid);
     }
   }
 
@@ -202,62 +195,6 @@ class Youprint {
 
     await _printProcess(bytes, uuid);
   }
-
-  // /// Reusable method for print text, image or QR based value [byteBuffer]
-  // /// Handler Android or iOS will use method writeBytes from ByteBuffer
-  // /// But in iOS more complex handler using service and characteristic
-  // Future<void> _printProcess(List<int> byteBuffer, String uuid) async {
-  //   try {
-  //     final devices = FlutterBluePlus.connectedDevices
-  //         .where((device) => device.remoteId.str == uuid)
-  //         .toList();
-  //
-  //     if (devices.isEmpty) {
-  //       _escPosPrinter.clearTextsToPrint();
-  //       _escPosPrinter.printerConnection.clearData();
-  //
-  //       log('$runtimeType - device not found');
-  //       return;
-  //     }
-  //
-  //     final device = devices.first;
-  //
-  //     final services = device.servicesList
-  //         .where((element) => element.serviceUuid == Guid(printerServiceId));
-  //
-  //     if (services.isEmpty) {
-  //       _escPosPrinter.clearTextsToPrint();
-  //       _escPosPrinter.printerConnection.clearData();
-  //
-  //       log('$runtimeType - service not found');
-  //       return;
-  //     }
-  //
-  //     final service = services.first;
-  //
-  //     final characteristics =
-  //         service.characteristics.where((c) => c.properties.write);
-  //
-  //     if (characteristics.isEmpty) {
-  //       _escPosPrinter.clearTextsToPrint();
-  //       _escPosPrinter.printerConnection.clearData();
-  //
-  //       log('$runtimeType - characteristic not found');
-  //       return;
-  //     }
-  //
-  //     final c = characteristics.first;
-  //
-  //     if (c.properties.write) {
-  //       await c.splitWrite(byteBuffer);
-  //     }
-  //   } on Exception catch (error) {
-  //     log('$runtimeType PrintProcess - Error $error');
-  //   }
-  //
-  //   _escPosPrinter.clearTextsToPrint();
-  //   _escPosPrinter.printerConnection.clearData();
-  // }
 
   /// Reusable method for print text, image or QR based value [byteBuffer]
   /// Handler Android or iOS will use method writeBytes from ByteBuffer
