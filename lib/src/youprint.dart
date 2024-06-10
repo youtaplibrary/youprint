@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/services.dart';
-import 'package:youprint/src/extensions/bluetooth_extension.dart';
 import 'package:youprint/src/receipt/receipt_image.dart';
 import 'package:youprint/youprint.dart';
 
@@ -20,8 +19,6 @@ class Youprint {
 
   static int get printerNbrCharactersPerLine => 32;
 
-  static String get printerServiceId => '18f0';
-
   static final DeviceConnection _deviceConnection = DeviceConnection();
 
   static final AsyncEscPosPrinter _escPosPrinter = AsyncEscPosPrinter(
@@ -32,46 +29,39 @@ class Youprint {
   );
 
   /// get connected device
-  List<BluetoothDevice> get connectedDevices =>
-      FlutterBluePlus.connectedDevices;
+  Future<List<FluetoothDevice>> get connectedDevices =>
+      Fluetooth().getConnectedDevice();
 
   /// return bluetooth device list, handler Android and iOS in [BlueScanner]
-  Future<List<BluetoothDevice>> scan() async {
-    await FlutterBluePlus.startScan(
-      withServices: [Guid(printerServiceId)],
-      timeout: const Duration(seconds: 5),
-    );
-
-    await FlutterBluePlus.isScanning
-        .where((isScanning) => isScanning == false)
-        .first;
-
-    final result = FlutterBluePlus.lastScanResults
-        .map((element) => element.device)
-        .where((element) => element.platformName.isNotEmpty)
-        .toList();
-
-    return result;
+  Future<List<FluetoothDevice>> scan() async {
+    final devices = await Fluetooth().getAvailableDevices();
+    return devices;
   }
 
-  /// When connecting, [discoverServices] and [requestMtu]
   Future<ConnectionStatus> connect(
-    BluetoothDevice device, {
+    FluetoothDevice device, {
     Duration timeout = const Duration(seconds: 10),
   }) async {
-    if (device.isConnected) return ConnectionStatus.connected;
-    await device.connect(autoConnect: false, mtu: 200, timeout: timeout);
-    await device.discoverServices();
-    return ConnectionStatus.connected;
+    bool isConnected = await Fluetooth().isConnected(device.id);
+
+    if (isConnected) {
+      await disconnect(device);
+    }
+
+    await Fluetooth().connect(device.id).timeout(timeout);
+    isConnected = await Fluetooth().isConnected(device.id);
+    return isConnected
+        ? ConnectionStatus.connected
+        : ConnectionStatus.disconnect;
   }
 
   /// To stop communication between bluetooth device and application
-  Future<ConnectionStatus> disconnect(BluetoothDevice device) async {
-    await device.disconnect();
-    await device.connectionState
-        .where((val) => val == BluetoothConnectionState.disconnected)
-        .first;
-    return ConnectionStatus.disconnect;
+  Future<ConnectionStatus> disconnect(FluetoothDevice device) async {
+    await Fluetooth().disconnectDevice(device.id);
+    bool isConnected = await Fluetooth().isConnected(device.id);
+    return isConnected
+        ? ConnectionStatus.connected
+        : ConnectionStatus.disconnect;
   }
 
   Future<void> printReceiptText(
@@ -166,6 +156,7 @@ class Youprint {
 
     _escPosPrinter.clearTextsToPrint();
     _escPosPrinter.printerConnection.clearData();
+
     await _printProcess(bytesResult, uuid);
   }
 
@@ -210,9 +201,10 @@ class Youprint {
   /// But in iOS more complex handler using service and characteristic
   Future<void> _printProcess(List<int> byteBuffer, String uuid) async {
     try {
-      final devices = FlutterBluePlus.connectedDevices
-          .where((device) => device.remoteId.str == uuid)
-          .toList();
+      final connectedDevices = await Fluetooth().getConnectedDevice();
+
+      final devices =
+          connectedDevices.where((device) => device.id == uuid).toList();
 
       if (devices.isEmpty) {
         _escPosPrinter.clearTextsToPrint();
@@ -224,37 +216,10 @@ class Youprint {
 
       final device = devices.first;
 
-      final services = device.servicesList
-          .where((element) => element.serviceUuid == Guid(printerServiceId));
-
-      if (services.isEmpty) {
-        _escPosPrinter.clearTextsToPrint();
-        _escPosPrinter.printerConnection.clearData();
-
-        log('$runtimeType - service not found');
-        return;
-      }
-
-      final service = services.first;
-
-      final characteristics =
-          service.characteristics.where((c) => c.properties.write);
-
-      if (characteristics.isEmpty) {
-        _escPosPrinter.clearTextsToPrint();
-        _escPosPrinter.printerConnection.clearData();
-
-        log('$runtimeType - characteristic not found');
-        return;
-      }
-
-      final c = characteristics.first;
-
-      if (c.properties.write) {
-        await c.splitWrite(byteBuffer);
-      }
+      await Fluetooth().sendBytes(byteBuffer, device.id);
     } on Exception catch (error) {
       log('$runtimeType PrintProcess - Error $error');
+      await Fluetooth().disconnectDevice(uuid);
     }
 
     _escPosPrinter.clearTextsToPrint();
