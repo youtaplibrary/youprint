@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
+import 'package:fluetooth/fluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -18,11 +18,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Youprint Demo',
+      title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Youprint Demo'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -36,89 +36,94 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<BluetoothDevice> _availableDevices = [];
-
-  bool _isScanning = false;
-  bool _isPrinting = false;
+  // This widget is the root of your application.
+  bool _isBusy = false;
+  List<FluetoothDevice> _devices = [];
+  List<FluetoothDevice> _connectedDevice = [];
 
   final _youprint = Youprint();
+
+  Future<void> _refreshPrinters() async {
+    if (_isBusy) {
+      return;
+    }
+    setState(() => _isBusy = true);
+    final List<FluetoothDevice> devices =
+        await Fluetooth().getAvailableDevices();
+    setState(() {
+      _devices = devices;
+      _isBusy = false;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    FlutterBluePlus.setLogLevel(LogLevel.verbose, color: false);
+    _refreshPrinters();
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initBluetoothListener();
-      _scanDevices();
+  Future<void> _connect(FluetoothDevice device) async {
+    if (_isBusy) return;
 
-      FlutterBluePlus.events.onConnectionStateChanged.listen((event) {
-        if (event.connectionState == BluetoothConnectionState.connected) {
-          if (mounted) {
-            setState(() {});
-          }
-        } else if (event.connectionState ==
-            BluetoothConnectionState.disconnected) {
-          if (mounted) {
-            setState(() {});
-          }
-        }
+    setState(() => _isBusy = true);
+
+    try {
+      await Fluetooth().connect(
+        device.id,
+      );
+    } catch (_) {
+      setState(() {
+        _isBusy = false;
       });
+    }
+
+    await Fluetooth().getConnectedDevice().then((connectedDevices) {
+      _connectedDevice = connectedDevices;
+    });
+
+    setState(() {
+      _isBusy = false;
     });
   }
 
-  Future<void> _initBluetoothListener() async {
-    if (Platform.isAndroid) {
-      await FlutterBluePlus.turnOn();
+  Future<void> _disconnect(FluetoothDevice device) async {
+    if (_isBusy) {
+      return;
     }
-
-    FlutterBluePlus.isScanning.listen((isScanning) {
-      if (!isScanning) {
-        _availableDevices = FlutterBluePlus.lastScanResults
-            .map((element) => element.device)
-            .where((element) => element.platformName.isNotEmpty)
-            .toList();
-      }
-
-      if (mounted) {
-        setState(() {
-          _isScanning = isScanning;
-        });
-      }
+    setState(() => _isBusy = true);
+    await Fluetooth().disconnectDevice(device.id);
+    await Fluetooth().getConnectedDevice().then((connectedDevices) {
+      _connectedDevice = connectedDevices;
+    });
+    setState(() {
+      _isBusy = false;
     });
   }
 
-  Future<void> _scanDevices() async {
-    await _youprint.scan();
-  }
-
-  Future<void> _connectDevice(BluetoothDevice device) async {
-    await _youprint.connect(device);
-  }
-
-  Future<void> _disconnectDevice(BluetoothDevice device) async {
-    final status = await _youprint.disconnect(device);
-
-    if (status == ConnectionStatus.disconnect) {
-      if (mounted) {
-        setState(() {});
-      }
-    }
+  @override
+  void dispose() {
+    Fluetooth().disconnect();
+    super.dispose();
   }
 
   Future<void> _incrementCounter({
-    required BluetoothDevice device,
+    FluetoothDevice? device,
     int totalItems = 1,
     bool useQR = true,
     bool useLogo = true,
+    bool useBarcode = true,
   }) async {
+    if (_isBusy) {
+      return;
+    }
+
     /// Example for Print Image
     final ByteData logoBytes = await rootBundle.load(
       'assets/image.png',
     );
 
     /// Example for Print Text
-    ReceiptSectionText receiptText = ReceiptSectionText();
+    final ReceiptSectionText receiptText = ReceiptSectionText();
 
     if (useLogo) {
       receiptText.addImage(
@@ -203,14 +208,18 @@ class _MyHomePageState extends State<MyHomePage> {
     if (useQR) {
       receiptText.addQR(
         '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
-        size: 350,
+        size: 480,
       );
     }
 
+    receiptText
+        .addText('Cek e-menu restaurant di link yang disediakan di bawah ini');
+
+    if (device == null) return;
+
     await _youprint.printReceiptText(
       receiptText,
-      device.remoteId.str,
-      useCut: true,
+      device.id,
       feedCount: 2,
     );
   }
@@ -220,64 +229,41 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        actions: [
-          ElevatedButton(
-            onPressed: _scanDevices,
-            child: const Icon(Icons.refresh),
-          ),
-        ],
       ),
       body: Center(
-        child: _isScanning
-            ? const CircularProgressIndicator()
-            : ListView.builder(
-                itemCount: _availableDevices.length,
-                itemBuilder: (context, index) {
-                  final BluetoothDevice currentDevice =
-                      _availableDevices[index];
-                  return ListTile(
-                    title: Text(currentDevice.platformName),
-                    subtitle: Text(currentDevice.remoteId.str),
-                    trailing: ElevatedButton(
-                      onPressed: !FlutterBluePlus.connectedDevices
-                              .contains(currentDevice)
-                          ? () => _connectDevice(currentDevice)
-                          : () => _disconnectDevice(currentDevice),
-                      child: Text(
-                        FlutterBluePlus.connectedDevices.contains(currentDevice)
-                            ? 'Disconnect'
-                            : 'Connect',
-                      ),
-                    ),
-                  );
-                },
+        child: ListView.builder(
+          itemCount: _devices.length,
+          itemBuilder: (context, index) {
+            final FluetoothDevice currentDevice = _devices[index];
+            return ListTile(
+              title: Text(currentDevice.name),
+              subtitle: Text(currentDevice.id),
+              trailing: ElevatedButton(
+                onPressed: _connectedDevice.contains(currentDevice)
+                    ? () => _connect(currentDevice)
+                    : () => _disconnect(currentDevice),
+                child: Text(
+                  _connectedDevice.contains(currentDevice)
+                      ? 'Disconnect'
+                      : 'Connect',
+                ),
               ),
+            );
+          },
+        ),
       ),
-      floatingActionButton: _isScanning
-          ? const SizedBox.shrink()
-          : FloatingActionButton(
-              onPressed: _isPrinting
-                  ? null
-                  : () async {
-                      setState(() => _isPrinting = true);
-                      for (var device in FlutterBluePlus.connectedDevices) {
-                        await _incrementCounter(
-                          device: device,
-                          useQR: true,
-                          useLogo: true,
-                        );
-                      }
-                      setState(() => _isPrinting = false);
-                    },
-              tooltip: 'Print',
-              child: _isPrinting
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.print),
-            ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: FloatingActionButton(
+        onPressed: _connectedDevice.isEmpty
+            ? _refreshPrinters
+            : () {
+                for (var device in _connectedDevice) {
+                  _incrementCounter(
+                      device: device, useQR: false, useLogo: false);
+                }
+              },
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
