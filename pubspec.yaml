@@ -2,6 +2,7 @@ name: youprint
 description: Text parser for ESC/POS Thermal Printer.
 version: 1.0.3
 homepage: https://github.com/youtaplibrary/youprint
+publish_to: none
 
 environment:
   sdk: '>=2.19.6 <3.0.0'
@@ -11,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   image: 3.2.2
-  zxing_lib: 1.0.0
+  zxing_lib: 1.1.2
   fluetooth:
     git:
       url: https://github.com/youtaplibrary/fluetooth.git
