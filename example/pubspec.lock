@@ -93,8 +93,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0.1.3"
-      resolved-ref: c3327db544f9ef638e329074f1d9a7e9d57904dc
+      ref: "chore/add_namespace_in_gradle"
+      resolved-ref: e5bddb20a0008345b5069f402ce599a93b2e44c1
       url: "https://github.com/youtaplibrary/fluetooth.git"
     source: git
     version: "0.1.3"
@@ -359,7 +359,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.4"
+    version: "1.0.5"
   zxing_lib:
     dependency: transitive
     description:
