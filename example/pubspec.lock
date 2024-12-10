@@ -85,11 +85,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "chore/add_namespace_in_gradle"
-      resolved-ref: e5bddb20a0008345b5069f402ce599a93b2e44c1
+      ref: "0.1.4"
+      resolved-ref: a232ba0288a0e878ab1d2c99b9f81e7417e5a32e
       url: "https://github.com/youtaplibrary/fluetooth.git"
     source: git
-    version: "0.1.3"
+    version: "0.1.4"
   flutter:
     dependency: "direct main"
     description: flutter
