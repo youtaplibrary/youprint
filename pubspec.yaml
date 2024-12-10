@@ -1,6 +1,6 @@
 name: youprint
 description: Text parser for ESC/POS Thermal Printer.
-version: 1.0.4
+version: 1.0.5
 homepage: https://github.com/youtaplibrary/youprint
 publish_to: none
 
