@@ -120,6 +120,10 @@ class Youprint {
     return (pixel * EscPosPrinterSize.inchToMM / printerDpi).round();
   }
 
+  static int mmToPx(int mm) {
+    return (mm * printerDpi / EscPosPrinterSize.inchToMM).round();
+  }
+
   /// This method only for print image with parameter [bytes] in List<int>
   /// define [width] to custom width of image, default value is 120
   /// [feedCount] to create more space after printing process done
@@ -198,5 +202,13 @@ class Youprint {
 
     _escPosPrinter.clearTextsToPrint();
     _escPosPrinter.printerConnection.clearData();
+  }
+
+  String convertToHtml(String formattedText) {
+    try {
+      return HtmlConverter.convertToHtmlReceipt(formattedText);
+    } catch (_) {
+      return '';
+    }
   }
 }

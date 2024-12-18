@@ -111,7 +111,6 @@ class _MyHomePageState extends State<MyHomePage> {
     int totalItems = 1,
     bool useQR = true,
     bool useLogo = true,
-    bool useBarcode = true,
   }) async {
     if (_isBusy) {
       return;

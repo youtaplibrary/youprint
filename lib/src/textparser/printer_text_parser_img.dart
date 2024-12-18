@@ -60,8 +60,9 @@ class PrinterTextParserImg implements PrinterTextParserElement {
     int size,
   ) {
     final Image? image = decodeImage(base64.decode(base64Image));
-    if (image == null)
+    if (image == null) {
       throw const EscPosParserException('Failed to parse base64 to image');
+    }
     return PrinterTextParserImg.bytesToHexadecimalString(
       printerSize.imageToBytes(copyResize(image, width: size), gradient, size),
     );
