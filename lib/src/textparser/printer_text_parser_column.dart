@@ -9,6 +9,7 @@ import 'package:youprint/src/textparser/printer_text_parser_line.dart';
 import 'package:youprint/src/textparser/printer_text_parser_qr_code.dart';
 import 'package:youprint/src/textparser/printer_text_parser_string.dart';
 import 'package:youprint/src/textparser/printer_text_parser_tag.dart';
+import 'package:youprint/src/youprint.dart';
 
 class PrinterTextParserColumn {
   PrinterTextParserColumn(this._textParserLine, this._textColumn) {
@@ -36,14 +37,16 @@ class PrinterTextParserColumn {
     String trimmedTextColumn = textColumn.trim();
     bool isImgOrBarcodeLine = false;
 
-    if (_textParserLine.getNbrColumns == 1 && trimmedTextColumn.indexOf('<') == 0) {
+    if (_textParserLine.getNbrColumns == 1 &&
+        trimmedTextColumn.indexOf('<') == 0) {
       // Image or Barcode Lines
       int openTagIndex = trimmedTextColumn.indexOf('<'),
-          openTagEndIndex = trimmedTextColumn.indexOf('>', openTagIndex + 1) + 1;
+          openTagEndIndex =
+              trimmedTextColumn.indexOf('>', openTagIndex + 1) + 1;
 
       if (openTagIndex < openTagEndIndex) {
-        PrinterTextParserTag textParserTag =
-            PrinterTextParserTag(trimmedTextColumn.substring(openTagIndex, openTagEndIndex));
+        PrinterTextParserTag textParserTag = PrinterTextParserTag(
+            trimmedTextColumn.substring(openTagIndex, openTagEndIndex));
 
         switch (textParserTag.getTagName) {
           case PrinterTextParser.tagsImage:
@@ -68,14 +71,16 @@ class PrinterTextParserColumn {
                   appendBarcode(
                     textAlign,
                     textParserTag.attributes,
-                    trimmedTextColumn.substring(openTagEndIndex, closeTagPosition),
+                    trimmedTextColumn.substring(
+                        openTagEndIndex, closeTagPosition),
                   );
                   break;
                 case PrinterTextParser.tagsQRCode:
                   appendQRCode(
                     textAlign,
                     textParserTag.attributes,
-                    trimmedTextColumn.substring(openTagEndIndex, closeTagPosition),
+                    trimmedTextColumn.substring(
+                        openTagEndIndex, closeTagPosition),
                   );
                   break;
               }
@@ -100,8 +105,8 @@ class PrinterTextParserColumn {
           break;
         }
         closeTagIndex++;
-        PrinterTextParserTag textParserTag =
-            PrinterTextParserTag(textColumn.substring(openTagIndex, closeTagIndex));
+        PrinterTextParserTag textParserTag = PrinterTextParserTag(
+            textColumn.substring(openTagIndex, closeTagIndex));
         if (PrinterTextParser.isTagTextFormat(textParserTag.getTagName)) {
           if (textParserTag.isCloseTag) {
             switch (textParserTag.getTagName) {
@@ -125,123 +130,165 @@ class PrinterTextParserColumn {
             switch (textParserTag.getTagName) {
               case PrinterTextParser.tagsFormatTextBold:
                 textParser.addTextBold(EscPosPrinterCommands.textWeightBold);
-                if (textParserTag.hasAttribute(PrinterTextParser.attrFormatTextFontSize)) {
-                  switch (textParserTag.getAttribute(PrinterTextParser.attrFormatTextFontSize)) {
+                if (textParserTag
+                    .hasAttribute(PrinterTextParser.attrFormatTextFontSize)) {
+                  switch (textParserTag
+                      .getAttribute(PrinterTextParser.attrFormatTextFontSize)) {
                     case PrinterTextParser.attrFormatTextFontSizeNormal:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeNormal);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeNormal);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeTall:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeDoubleHeight);
+                      textParser.addTextSize(
+                          EscPosPrinterCommands.textSizeDoubleHeight);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeWide:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeDoubleWidth);
+                      textParser.addTextSize(
+                          EscPosPrinterCommands.textSizeDoubleWidth);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig:
                       textParser.addTextSize(EscPosPrinterCommands.textSizeBig);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig2:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig2);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig2);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig3:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig3);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig3);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig4:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig4);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig4);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig5:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig5);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig5);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig6:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig6);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig6);
                       break;
                     default:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeNormal);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeNormal);
                   }
                 } else {
                   textParser.addTextSize(textParser.getLastTextSize);
                 }
                 break;
               case PrinterTextParser.tagsFormatTextUnderline:
-                if (textParserTag.hasAttribute(PrinterTextParser.attrFormatTextUnderlineType)) {
-                  switch (
-                      textParserTag.getAttribute(PrinterTextParser.attrFormatTextUnderlineType)) {
+                if (textParserTag.hasAttribute(
+                    PrinterTextParser.attrFormatTextUnderlineType)) {
+                  switch (textParserTag.getAttribute(
+                      PrinterTextParser.attrFormatTextUnderlineType)) {
                     case PrinterTextParser.attrFormatTextUnderlineTypeNormal:
-                      textParser.addTextUnderline(EscPosPrinterCommands.textUnderLineLarge);
-                      textParser.addTextDoubleStrike(textParser.getLastTextDoubleStrike);
+                      textParser.addTextUnderline(
+                          EscPosPrinterCommands.textUnderLineLarge);
+                      textParser.addTextDoubleStrike(
+                          textParser.getLastTextDoubleStrike);
                       break;
                     case PrinterTextParser.attrFormatTextUnderlineTypeDouble:
-                      textParser.addTextUnderline(textParser.getLastTextUnderline);
-                      textParser.addTextDoubleStrike(EscPosPrinterCommands.textDoubleStrikeOn);
+                      textParser
+                          .addTextUnderline(textParser.getLastTextUnderline);
+                      textParser.addTextDoubleStrike(
+                          EscPosPrinterCommands.textDoubleStrikeOn);
                       break;
                   }
                 } else {
-                  textParser.addTextUnderline(EscPosPrinterCommands.textUnderLineLarge);
-                  textParser.addTextDoubleStrike(textParser.getLastTextDoubleStrike);
+                  textParser.addTextUnderline(
+                      EscPosPrinterCommands.textUnderLineLarge);
+                  textParser
+                      .addTextDoubleStrike(textParser.getLastTextDoubleStrike);
                 }
                 break;
               case PrinterTextParser.tagsFormatTextFont:
-                if (textParserTag.hasAttribute(PrinterTextParser.attrFormatTextFontSize)) {
-                  switch (textParserTag.getAttribute(PrinterTextParser.attrFormatTextFontSize)) {
+                if (textParserTag
+                    .hasAttribute(PrinterTextParser.attrFormatTextFontSize)) {
+                  switch (textParserTag
+                      .getAttribute(PrinterTextParser.attrFormatTextFontSize)) {
                     case PrinterTextParser.attrFormatTextFontSizeNormal:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeNormal);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeNormal);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeTall:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeDoubleHeight);
+                      textParser.addTextSize(
+                          EscPosPrinterCommands.textSizeDoubleHeight);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeWide:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeDoubleWidth);
+                      textParser.addTextSize(
+                          EscPosPrinterCommands.textSizeDoubleWidth);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig:
                       textParser.addTextSize(EscPosPrinterCommands.textSizeBig);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig2:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig2);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig2);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig3:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig3);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig3);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig4:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig4);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig4);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig5:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig5);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig5);
                       break;
                     case PrinterTextParser.attrFormatTextFontSizeBig6:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeBig6);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeBig6);
                       break;
                     default:
-                      textParser.addTextSize(EscPosPrinterCommands.textSizeNormal);
+                      textParser
+                          .addTextSize(EscPosPrinterCommands.textSizeNormal);
                   }
                 } else {
                   textParser.addTextSize(textParser.getLastTextSize);
                 }
 
-                if (textParserTag.hasAttribute(PrinterTextParser.attrFormatTextFontColor)) {
-                  switch (textParserTag.getAttribute(PrinterTextParser.attrFormatTextFontColor)) {
+                if (textParserTag
+                    .hasAttribute(PrinterTextParser.attrFormatTextFontColor)) {
+                  switch (textParserTag.getAttribute(
+                      PrinterTextParser.attrFormatTextFontColor)) {
                     case PrinterTextParser.attrFormatTextFontColorBlack:
-                      textParser.addTextColor(EscPosPrinterCommands.textColorBlack);
-                      textParser.addTextReverseColor(EscPosPrinterCommands.textColorReverseOff);
+                      textParser
+                          .addTextColor(EscPosPrinterCommands.textColorBlack);
+                      textParser.addTextReverseColor(
+                          EscPosPrinterCommands.textColorReverseOff);
                       break;
                     case PrinterTextParser.attrFormatTextFontColorBgBlack:
-                      textParser.addTextColor(EscPosPrinterCommands.textColorBlack);
-                      textParser.addTextReverseColor(EscPosPrinterCommands.textColorReverseOn);
+                      textParser
+                          .addTextColor(EscPosPrinterCommands.textColorBlack);
+                      textParser.addTextReverseColor(
+                          EscPosPrinterCommands.textColorReverseOn);
                       break;
                     case PrinterTextParser.attrFormatTextFontColorRed:
-                      textParser.addTextColor(EscPosPrinterCommands.textColorRed);
-                      textParser.addTextReverseColor(EscPosPrinterCommands.textColorReverseOff);
+                      textParser
+                          .addTextColor(EscPosPrinterCommands.textColorRed);
+                      textParser.addTextReverseColor(
+                          EscPosPrinterCommands.textColorReverseOff);
                       break;
                     case PrinterTextParser.attrFormatTextFontColorBgRed:
-                      textParser.addTextColor(EscPosPrinterCommands.textColorRed);
-                      textParser.addTextReverseColor(EscPosPrinterCommands.textColorReverseOn);
+                      textParser
+                          .addTextColor(EscPosPrinterCommands.textColorRed);
+                      textParser.addTextReverseColor(
+                          EscPosPrinterCommands.textColorReverseOn);
                       break;
                     default:
-                      textParser.addTextColor(EscPosPrinterCommands.textColorBlack);
-                      textParser.addTextReverseColor(EscPosPrinterCommands.textColorReverseOff);
+                      textParser
+                          .addTextColor(EscPosPrinterCommands.textColorBlack);
+                      textParser.addTextReverseColor(
+                          EscPosPrinterCommands.textColorReverseOff);
                       break;
                   }
                 } else {
                   textParser.addTextColor(textParser.getLastTextColor);
-                  textParser.addTextReverseColor(textParser.getLastTextReverseColor);
+                  textParser
+                      .addTextReverseColor(textParser.getLastTextReverseColor);
                 }
                 break;
             }
@@ -402,10 +449,19 @@ class PrinterTextParserColumn {
   void appendImage(
     String textAlign,
     HashMap<String, String> imageAttributes,
-    String hexString,
+    String base64String,
   ) {
     appendElement(
-        PrinterTextParserImg(this, textAlign, imageAttributes, hexadecimalString: hexString));
+      PrinterTextParserImg(
+        this,
+        textAlign,
+        imageAttributes,
+        hexadecimalString: Youprint.base64toHexadecimal(
+          base64String,
+          int.tryParse(imageAttributes['width'] ?? '') ?? 120,
+        ),
+      ),
+    );
   }
 
   void appendBarcode(
@@ -413,7 +469,8 @@ class PrinterTextParserColumn {
     HashMap<String, String> barcodeAttributes,
     String code,
   ) {
-    appendElement(PrinterTextParserBarcode(this, textAlign, barcodeAttributes, code));
+    appendElement(
+        PrinterTextParserBarcode(this, textAlign, barcodeAttributes, code));
   }
 
   void appendQRCode(
@@ -421,11 +478,13 @@ class PrinterTextParserColumn {
     HashMap<String, String> qrCodeAttributes,
     String data,
   ) {
-    appendElement(PrinterTextParserQRCode(this, textAlign, qrCodeAttributes, data));
+    appendElement(
+        PrinterTextParserQRCode(this, textAlign, qrCodeAttributes, data));
   }
 
   PrinterTextParserColumn prependElement(PrinterTextParserElement element) {
-    List<PrinterTextParserElement?> elementsTmp = List<PrinterTextParserElement?>.filled(
+    List<PrinterTextParserElement?> elementsTmp =
+        List<PrinterTextParserElement?>.filled(
       _elements.length + 1,
       null,
     );
@@ -436,7 +495,8 @@ class PrinterTextParserColumn {
   }
 
   void appendElement(PrinterTextParserElement element) {
-    List<PrinterTextParserElement?> elementsTmp = List<PrinterTextParserElement?>.filled(
+    List<PrinterTextParserElement?> elementsTmp =
+        List<PrinterTextParserElement?>.filled(
       _elements.length + 1,
       null,
     );
