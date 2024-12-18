@@ -451,6 +451,16 @@ class PrinterTextParserColumn {
     HashMap<String, String> imageAttributes,
     String base64String,
   ) {
+    int width = 120;
+
+    if (imageAttributes.containsKey(PrinterTextParser.attrImageWidth)) {
+      String? imageAttribute =
+          imageAttributes[PrinterTextParser.attrImageWidth];
+      if (imageAttribute != null) {
+        width = int.tryParse(imageAttribute) ?? 120;
+      }
+    }
+
     appendElement(
       PrinterTextParserImg(
         this,
@@ -458,7 +468,7 @@ class PrinterTextParserColumn {
         imageAttributes,
         hexadecimalString: Youprint.base64toHexadecimal(
           base64String,
-          int.tryParse(imageAttributes['width'] ?? '') ?? 120,
+          width,
         ),
       ),
     );

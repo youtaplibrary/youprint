@@ -59,7 +59,7 @@ class PrinterTextParser {
   static const String attrFormatTextFontColorBgRed = 'bg-red';
 
   static const String attrQRCodeSize = 'size';
-  static const String attrImageSize = 'size';
+  static const String attrImageWidth = 'width';
 
   static String? _regexAlignTags;
 
@@ -72,7 +72,8 @@ class PrinterTextParser {
           ..write(PrinterTextParser.tagsAlign[i])
           ..write("\\]");
       }
-      PrinterTextParser._regexAlignTags = regexAlignTags.toString().substring(1);
+      PrinterTextParser._regexAlignTags =
+          regexAlignTags.toString().substring(1);
       return PrinterTextParser._regexAlignTags;
     }
     return PrinterTextParser._regexAlignTags;
@@ -111,10 +112,14 @@ class PrinterTextParser {
   final EscPosPrinter _printer;
   List<List<int>> textSize = [EscPosPrinterCommands.textSizeNormal];
   List<List<int>> textColor = [EscPosPrinterCommands.textColorBlack];
-  List<List<int>> textReverseColor = [EscPosPrinterCommands.textColorReverseOff];
+  List<List<int>> textReverseColor = [
+    EscPosPrinterCommands.textColorReverseOff
+  ];
   List<List<int>> textBold = [EscPosPrinterCommands.textWeightNormal];
   List<List<int>> textUnderline = [EscPosPrinterCommands.textUnderlineOff];
-  List<List<int>> textDoubleStrike = [EscPosPrinterCommands.textDoubleStrikeOff];
+  List<List<int>> textDoubleStrike = [
+    EscPosPrinterCommands.textDoubleStrikeOff
+  ];
   String _text = '';
 
   PrinterTextParser(this._printer);
@@ -150,10 +155,12 @@ class PrinterTextParser {
     }
   }
 
-  List<int> get getLastTextReverseColor => textReverseColor[textReverseColor.length - 1];
+  List<int> get getLastTextReverseColor =>
+      textReverseColor[textReverseColor.length - 1];
 
   void addTextReverseColor(List<int> newTextReverseColor) {
-    textReverseColor = PrinterTextParser.arrayBytePush(textReverseColor, newTextReverseColor);
+    textReverseColor =
+        PrinterTextParser.arrayBytePush(textReverseColor, newTextReverseColor);
   }
 
   void dropLastTextReverseColor() {
@@ -177,7 +184,8 @@ class PrinterTextParser {
   List<int> get getLastTextUnderline => textUnderline[textUnderline.length - 1];
 
   void addTextUnderline(List<int> newTextUnderline) {
-    textUnderline = PrinterTextParser.arrayBytePush(textUnderline, newTextUnderline);
+    textUnderline =
+        PrinterTextParser.arrayBytePush(textUnderline, newTextUnderline);
   }
 
   void dropLastTextUnderline() {
@@ -186,10 +194,12 @@ class PrinterTextParser {
     }
   }
 
-  List<int> get getLastTextDoubleStrike => textDoubleStrike[textDoubleStrike.length - 1];
+  List<int> get getLastTextDoubleStrike =>
+      textDoubleStrike[textDoubleStrike.length - 1];
 
   void addTextDoubleStrike(List<int> newTextDoubleStrike) {
-    textDoubleStrike = PrinterTextParser.arrayBytePush(textDoubleStrike, newTextDoubleStrike);
+    textDoubleStrike =
+        PrinterTextParser.arrayBytePush(textDoubleStrike, newTextDoubleStrike);
   }
 
   void dropLastTextDoubleStrike() {
