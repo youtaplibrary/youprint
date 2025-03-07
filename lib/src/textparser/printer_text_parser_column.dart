@@ -9,7 +9,6 @@ import 'package:youprint/src/textparser/printer_text_parser_line.dart';
 import 'package:youprint/src/textparser/printer_text_parser_qr_code.dart';
 import 'package:youprint/src/textparser/printer_text_parser_string.dart';
 import 'package:youprint/src/textparser/printer_text_parser_tag.dart';
-import 'package:youprint/src/youprint.dart';
 
 class PrinterTextParserColumn {
   PrinterTextParserColumn(this._textParserLine, this._textColumn) {
@@ -52,11 +51,15 @@ class PrinterTextParserColumn {
           case PrinterTextParser.tagsImage:
           case PrinterTextParser.tagsBarcode:
           case PrinterTextParser.tagsQRCode:
+          case PrinterTextParser.tagsCut:
             String closeTag = '</${textParserTag.getTagName}>';
             int closeTagPosition = trimmedTextColumn.length - closeTag.length;
 
             if (trimmedTextColumn.substring(closeTagPosition) == closeTag) {
               switch (textParserTag.getTagName) {
+                case PrinterTextParser.tagsCut:
+                  appendCut(textAlign);
+                  break;
                 case PrinterTextParser.tagsImage:
                   appendImage(
                     textAlign,
@@ -449,29 +452,10 @@ class PrinterTextParserColumn {
   void appendImage(
     String textAlign,
     HashMap<String, String> imageAttributes,
-    String base64String,
+    String hexString,
   ) {
-    int width = 120;
-
-    if (imageAttributes.containsKey(PrinterTextParser.attrImageWidth)) {
-      String? imageAttribute =
-          imageAttributes[PrinterTextParser.attrImageWidth];
-      if (imageAttribute != null) {
-        width = int.tryParse(imageAttribute) ?? 120;
-      }
-    }
-
-    appendElement(
-      PrinterTextParserImg(
-        this,
-        textAlign,
-        imageAttributes,
-        hexadecimalString: Youprint.base64toHexadecimal(
-          base64String,
-          width,
-        ),
-      ),
-    );
+    appendElement(PrinterTextParserImg(this, textAlign, imageAttributes,
+        hexadecimalString: hexString));
   }
 
   void appendBarcode(
@@ -490,6 +474,10 @@ class PrinterTextParserColumn {
   ) {
     appendElement(
         PrinterTextParserQRCode(this, textAlign, qrCodeAttributes, data));
+  }
+
+  void appendCut(String textAlign) {
+    appendElement(PrinterTextParserCut());
   }
 
   PrinterTextParserColumn prependElement(PrinterTextParserElement element) {

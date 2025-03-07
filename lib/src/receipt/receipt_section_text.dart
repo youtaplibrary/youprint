@@ -22,7 +22,8 @@ class ReceiptSectionText {
   /// [_data] will collect all generated tag from model [ReceiptText],
   /// [ReceiptTextLeftRight] and [ReceiptLine]
   String getContent([int start = 0, int? end]) {
-    final String data = _data.isNotEmpty ? _data.sublist(start, end).join() : '';
+    final String data =
+        _data.isNotEmpty ? _data.sublist(start, end).join() : '';
     return data;
   }
 
@@ -134,5 +135,9 @@ class ReceiptSectionText {
       size: size,
     );
     _data.add(barcode.content);
+  }
+
+  void addCut() {
+    _data.add("[C]<cut> </cut>\n");
   }
 }
