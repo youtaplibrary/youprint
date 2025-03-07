@@ -149,6 +149,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     receiptText.addLeftRightText('No. Order', '10');
 
+    receiptText.addCut();
+
     receiptText.addSpacer(useDashed: true);
     receiptText.addLeftRightText(
       'Waktu',
@@ -240,8 +242,8 @@ class _MyHomePageState extends State<MyHomePage> {
               subtitle: Text(currentDevice.id),
               trailing: ElevatedButton(
                 onPressed: _connectedDevice.contains(currentDevice)
-                    ? () => _connect(currentDevice)
-                    : () => _disconnect(currentDevice),
+                    ? () => _disconnect(currentDevice)
+                    : () => _connect(currentDevice),
                 child: Text(
                   _connectedDevice.contains(currentDevice)
                       ? 'Disconnect'
@@ -258,7 +260,11 @@ class _MyHomePageState extends State<MyHomePage> {
             : () {
                 for (var device in _connectedDevice) {
                   _incrementCounter(
-                      device: device, useQR: false, useLogo: false);
+                    device: device,
+                    useQR: false,
+                    useLogo: false,
+                    useBarcode: false,
+                  );
                 }
               },
         tooltip: 'Increment',

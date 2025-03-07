@@ -7,3 +7,4 @@ export 'printer_text_parser_line.dart';
 export 'printer_text_parser_qr_code.dart';
 export 'printer_text_parser_string.dart';
 export 'printer_text_parser_tag.dart';
+export 'printer_text_parser_cut.dart';
