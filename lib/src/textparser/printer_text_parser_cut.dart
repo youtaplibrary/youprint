@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:youprint/youprint.dart';
 
 class PrinterTextParserCut implements PrinterTextParserElement {
@@ -8,8 +6,9 @@ class PrinterTextParserCut implements PrinterTextParserElement {
 
   @override
   PrinterTextParserCut print(EscPosPrinterCommands printerSocket) {
-    log('cut executed');
-    printerSocket.cutPaper();
+    printerSocket
+      ..feedPaper(2)
+      ..cutPaper();
     return this;
   }
 }
