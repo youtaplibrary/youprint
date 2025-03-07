@@ -18,9 +18,9 @@ class Youprint {
 
   static int get printerDpi => 203;
 
-  static double get printerWidthMM => 48.0;
+  static double get printerWidthMM => 72.0;
 
-  static int get printerNbrCharactersPerLine => 32;
+  static int get printerNbrCharactersPerLine => 48;
 
   static final DeviceConnection _deviceConnection = DeviceConnection();
 
