@@ -1,3 +1,5 @@
+import 'package:youprint/youprint.dart';
+
 class ReceiptLine {
   ReceiptLine({this.count = 1, this.useDashed = false});
 
@@ -17,8 +19,16 @@ class ReceiptLine {
     return concatString;
   }
 
+  String get _generateDash {
+    String dash = '';
+    for (int i = 0; i < Youprint.printerNbrCharactersPerLine; i++) {
+      dash += '-';
+    }
+    return dash;
+  }
+
   /// Tag <hr>
-  String get _dashedLine => '[C]--------------------------------\n';
+  String get _dashedLine => '[C]$_generateDash\n';
 
   /// <br>
   String get _emptyLine => '';
