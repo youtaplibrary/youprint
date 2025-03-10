@@ -72,8 +72,10 @@ class EscPosPrinterCommands {
   /// Create constructor of EscPosPrinterCommands
   /// @param [_printerConnection] an instance of a class which implement DeviceConnection
 
-  EscPosPrinterCommands(this._printerConnection, EscPosCharsetEncoding? charsetEncoding) {
-    _charsetEncoding = charsetEncoding ?? EscPosCharsetEncoding("windows-1252", 16);
+  EscPosPrinterCommands(
+      this._printerConnection, EscPosCharsetEncoding? charsetEncoding) {
+    _charsetEncoding =
+        charsetEncoding ?? EscPosCharsetEncoding("windows-1252", 16);
   }
 
   static Uint8List convertQRCodeToBytes(String data, int size) {
@@ -163,7 +165,8 @@ class EscPosPrinterCommands {
       throw Exception('Can only output 1-4 bytes');
     }
     if (value < 0 || value > maxInput) {
-      throw Exception('Number is too large. Can only output up to $maxInput in $bytesNb bytes');
+      throw Exception(
+          'Number is too large. Can only output up to $maxInput in $bytesNb bytes');
     }
 
     final List<int> res = <int>[];
@@ -195,7 +198,8 @@ class EscPosPrinterCommands {
 
   /// Replaces a single bit in a 32-bit unsigned integer.
   static int _transformUint32Bool(int uint32, int shift, bool newValue) {
-    return ((0xFFFFFFFF ^ (0x1 << shift)) & uint32) | ((newValue ? 1 : 0) << shift);
+    return ((0xFFFFFFFF ^ (0x1 << shift)) & uint32) |
+        ((newValue ? 1 : 0) << shift);
   }
 
   /// Extract slices of an image as equal-sized blobs of column-format data.
@@ -313,11 +317,16 @@ class EscPosPrinterCommands {
     try {
       List<int> textBytes = utf8.encode(text);
 
-      int commandLength = textBytes.length + 3, pL = commandLength % 256, pH = commandLength ~/ 256;
+      int commandLength = textBytes.length + 3,
+          pL = commandLength % 256,
+          pH = commandLength ~/ 256;
 
-      _printerConnection.write([0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, qrCodeType, 0x00]);
-      _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, size]);
-      _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30]);
+      _printerConnection
+          .write([0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, qrCodeType, 0x00]);
+      _printerConnection
+          .write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, size]);
+      _printerConnection
+          .write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30]);
 
       Uint8List qrCodeCommand = Uint8List(textBytes.length + 8);
       List<int> qrBytes = [0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30];
@@ -326,7 +335,8 @@ class EscPosPrinterCommands {
       qrCodeCommand.setRange(8, 8 + textBytes.length, textBytes, 0);
       setAlign(Uint8List.fromList(EscPosPrinterCommands.textAlignCenter));
       _printerConnection.write(qrCodeCommand);
-      _printerConnection.write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30]);
+      _printerConnection
+          .write([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30]);
     } catch (e) {
       throw EscPosEncodingException(e.toString());
     }
@@ -342,15 +352,20 @@ class EscPosPrinterCommands {
     int barcodeLength = barcode.getCodeLength;
     Uint8List barcodeCommand = Uint8List(barcodeLength + 4);
     barcodeCommand.setRange(
-        0, 4, Uint8List.fromList([0x1D, 0x6B, barcode.getBarcodeType, barcodeLength]), 0);
+        0,
+        4,
+        Uint8List.fromList([0x1D, 0x6B, barcode.getBarcodeType, barcodeLength]),
+        0);
 
     for (int i = 0; i < barcodeLength; i++) {
       barcodeCommand[i + 4] = code.codeUnitAt(i);
     }
 
     _printerConnection.write([0x1D, 0x48, barcode.getTextPosition]);
+    // _printerConnection.write([0x1D, 0x77, barcode.getColWidth]);
     _printerConnection.write([0x1D, 0x77, barcode.getColWidth]);
     _printerConnection.write([0x1D, 0x68, barcode.getHeight]);
+    //  _printerConnection.write([0x1D, 0x68, 0x32]);
     _printerConnection.write(barcodeCommand);
     return this;
   }

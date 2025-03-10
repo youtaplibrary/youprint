@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:youprint/src/esc_pos_printer_size.dart';
 import 'package:youprint/src/exceptions/exception.dart';
 
@@ -18,21 +20,23 @@ abstract class Barcode {
   ) {
     _height = printerSize.mmToPx(heightMM);
 
-    if (widthMM == 0) {
-      widthMM = printerSize.getPrinterWidthMM * 0.7;
-    }
+    // if (widthMM == 0) {
+    widthMM = printerSize.getPrinterWidthMM * 0.7;
+    // }
 
     int wantedPxWidth = widthMM > printerSize.getPrinterWidthMM
             ? printerSize.getPrinterWidthPx
             : printerSize.mmToPx(widthMM),
         colWidth = (wantedPxWidth / getColsCount).round();
 
+    log('cek nih ${printerSize.getPrinterWidthMM * 0.7} ${printerSize.mmToPx(widthMM)}');
     if ((colWidth * getColsCount) > printerSize.getPrinterWidthPx) {
       --colWidth;
     }
 
     if (colWidth == 0) {
-      throw const EscPosBarcodeException("Barcode is too long for the paper size.");
+      throw const EscPosBarcodeException(
+          "Barcode is too long for the paper size.");
     }
 
     _colWidth = colWidth;

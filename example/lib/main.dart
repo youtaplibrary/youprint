@@ -125,91 +125,95 @@ class _MyHomePageState extends State<MyHomePage> {
     /// Example for Print Text
     final ReceiptSectionText receiptText = ReceiptSectionText();
 
-    if (useLogo) {
-      receiptText.addImage(
-        base64.encode(Uint8List.view(logoBytes.buffer)),
-        width: 330,
-      );
-      receiptText.addSpacer();
-    }
+    // if (useLogo) {
+    //   receiptText.addImage(
+    //     base64.encode(Uint8List.view(logoBytes.buffer)),
+    //     width: 330,
+    //   );
+    //   receiptText.addSpacer();
+    // }
 
-    /// Merchant name
-    receiptText.addText(
-      'MY STORE',
-      size: ReceiptTextSizeType.large,
-      style: ReceiptTextStyleType.bold,
-    );
+    // /// Merchant name
+    // receiptText.addText(
+    //   'MY STORE',
+    //   size: ReceiptTextSizeType.large,
+    //   style: ReceiptTextStyleType.bold,
+    // );
 
-    receiptText.addText(
-      'Wisma 46, Jakarta, Indonesia',
-      size: ReceiptTextSizeType.small,
-    );
+    // receiptText.addText(
+    //   'Wisma 46, Jakarta, Indonesia',
+    //   size: ReceiptTextSizeType.small,
+    // );
 
-    receiptText.addSpacer();
+    // receiptText.addSpacer();
 
-    receiptText.addLeftRightText('No. Order', '10');
+    // receiptText.addLeftRightText('No. Order', '10');
 
-    receiptText.addSpacer(useDashed: true);
-    receiptText.addLeftRightText(
-      'Waktu',
-      DateFormat('H:mm, dd/MM/yy').format(DateTime.now().toLocal()),
-    );
-    receiptText.addSpacer(useDashed: true);
-    int totalAmount = 0;
-    for (int i = 0; i < totalItems; i++) {
-      final qty = math.Random().nextInt(50);
+    // receiptText.addSpacer(useDashed: true);
+    // receiptText.addLeftRightText(
+    //   'Waktu',
+    //   DateFormat('H:mm, dd/MM/yy').format(DateTime.now().toLocal()),
+    // );
+    // receiptText.addSpacer(useDashed: true);
+    // int totalAmount = 0;
+    // for (int i = 0; i < totalItems; i++) {
+    //   final qty = math.Random().nextInt(50);
 
-      CartItem cartItem;
-      if (i == 5) {
-        cartItem = CartItem(
-          name: "Ini ceritanya nama item yang panjang banget",
-          quantity: qty,
-          price: 1000,
-        );
-      } else {
-        cartItem = CartItem(
-          name: "Item ${i + 1}",
-          quantity: qty,
-          price: 1000,
-        );
-      }
+    //   CartItem cartItem;
+    //   if (i == 5) {
+    //     cartItem = CartItem(
+    //       name: "Ini ceritanya nama item yang panjang banget",
+    //       quantity: qty,
+    //       price: 1000,
+    //     );
+    //   } else {
+    //     cartItem = CartItem(
+    //       name: "Item ${i + 1}",
+    //       quantity: qty,
+    //       price: 1000,
+    //     );
+    //   }
 
-      receiptText.addText(
-        cartItem.name,
-        alignment: ReceiptAlignment.left,
-        style: ReceiptTextStyleType.bold,
-      );
-      receiptText.addLeftRightText(
-        cartItem.qtyPrice,
-        cartItem.totalPrice.inIDR,
-        leftSize: ReceiptTextSizeType.small,
-      );
-      totalAmount += cartItem.totalPrice;
-    }
+    //   receiptText.addText(
+    //     cartItem.name,
+    //     alignment: ReceiptAlignment.left,
+    //     style: ReceiptTextStyleType.bold,
+    //   );
+    //   receiptText.addLeftRightText(
+    //     cartItem.qtyPrice,
+    //     cartItem.totalPrice.inIDR,
+    //     leftSize: ReceiptTextSizeType.small,
+    //   );
+    //   totalAmount += cartItem.totalPrice;
+    // }
 
-    receiptText.addSpacer(useDashed: true);
-    receiptText.addLeftRightText(
-      'Total',
-      totalAmount.inIDR,
-      rightStyle: ReceiptTextStyleType.bold,
-    );
-    receiptText.addSpacer(useDashed: true);
-    receiptText.addLeftRightText(
-      'Payment',
-      'Cash',
-      leftStyle: ReceiptTextStyleType.normal,
-      rightStyle: ReceiptTextStyleType.normal,
-    );
+    // receiptText.addSpacer(useDashed: true);
+    // receiptText.addLeftRightText(
+    //   'Total',
+    //   totalAmount.inIDR,
+    //   rightStyle: ReceiptTextStyleType.bold,
+    // );
+    // receiptText.addSpacer(useDashed: true);
+    // receiptText.addLeftRightText(
+    //   'Payment',
+    //   'Cash',
+    //   leftStyle: ReceiptTextStyleType.normal,
+    //   rightStyle: ReceiptTextStyleType.normal,
+    // );
 
-    receiptText.addText('--------------------------------');
+    // receiptText.addText('--------------------------------');
 
     receiptText.addText('Scan kode QR berikut untuk melakukan pembayaran.');
 
-    if (useQR) {
-      receiptText.addQR(
-        '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
-        size: 480,
-      );
+    // if (useQR) {
+    //   receiptText.addQR(
+    //     '00020101021226660014ID.LINKAJA.WWW011893000112093847326702151134829309421230303UME51400014ID.CO.QRIS.WWW0211123445678900303UME5204123453033605405290005802ID5913Voopoo Seller6006SERANG61054217162670118231031696394213432071642EF81DA-ED87-44982102126281011555060301163046D09',
+    //     size: 480,
+    //   );
+    // }
+
+    if (useBarcode) {
+      receiptText.addBarcode('202503OXK1740969659021');
     }
 
     receiptText
@@ -240,8 +244,8 @@ class _MyHomePageState extends State<MyHomePage> {
               subtitle: Text(currentDevice.id),
               trailing: ElevatedButton(
                 onPressed: _connectedDevice.contains(currentDevice)
-                    ? () => _connect(currentDevice)
-                    : () => _disconnect(currentDevice),
+                    ? () => _disconnect(currentDevice)
+                    : () => _connect(currentDevice),
                 child: Text(
                   _connectedDevice.contains(currentDevice)
                       ? 'Disconnect'
@@ -258,7 +262,11 @@ class _MyHomePageState extends State<MyHomePage> {
             : () {
                 for (var device in _connectedDevice) {
                   _incrementCounter(
-                      device: device, useQR: false, useLogo: false);
+                    device: device,
+                    useQR: false,
+                    useLogo: false,
+                    useBarcode: true,
+                  );
                 }
               },
         tooltip: 'Increment',
