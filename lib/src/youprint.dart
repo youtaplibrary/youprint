@@ -12,23 +12,48 @@ export 'package:fluetooth_plus/fluetooth_plus.dart' show FluetoothDevice;
 enum PaperSize { mm58, mm80 }
 
 class Youprint {
+  Youprint();
   static final Youprint _instance = Youprint();
+
+  static PaperSize _paperSize = PaperSize.mm58;
+
+  static PaperSize get paperSize => _paperSize;
 
   static Youprint get instance => _instance;
 
   static int get printerDpi => 203;
 
-  static double get printerWidthMM => 72.0;
+  /// Get printer width based on paper size
+  static double getPrinterWidth() {
+    switch (paperSize) {
+      case PaperSize.mm58:
+        return 48.0; // 58mm printer typically has 48mm printable width
+      case PaperSize.mm80:
+        return 72.0; // 80mm printer typically has 72mm printable width
+    }
+  }
 
-  static int get printerNbrCharactersPerLine => 48;
+  /// Get printer nbr characters based on paper size
+  static int getprinterNbrCharactersPerLine() {
+    switch (paperSize) {
+      case PaperSize.mm58:
+        return 32; // 58mm printer typically has 48mm printable width
+      case PaperSize.mm80:
+        return 48; // 80mm printer typically has 72mm printable width
+    }
+  }
+
+  void setPaperSize(PaperSize paperSize) {
+    _paperSize = paperSize;
+  }
 
   static final DeviceConnection _deviceConnection = DeviceConnection();
 
   static final AsyncEscPosPrinter _escPosPrinter = AsyncEscPosPrinter(
     _deviceConnection,
     printerDpi,
-    printerWidthMM,
-    printerNbrCharactersPerLine,
+    getPrinterWidth(),
+    getprinterNbrCharactersPerLine(),
   );
 
   List<FluetoothDevice> _connectedDevices = [];
@@ -82,7 +107,6 @@ class Youprint {
     bool useRaster = false,
     bool openDrawer = false,
     double duration = 0,
-    PaperSize paperSize = PaperSize.mm58,
     double? textScaleFactor,
     BatchPrintOptions? batchPrintOptions,
   }) async {
@@ -135,7 +159,6 @@ class Youprint {
     int feedCount = 0,
     bool useCut = false,
     bool openDrawer = false,
-    PaperSize paperSize = PaperSize.mm58,
   }) async {
     final base64Image = base64.encode(Uint8List.fromList(bytes));
     final ReceiptImage image = ReceiptImage(base64Image);
@@ -151,7 +174,10 @@ class Youprint {
     await _printProcess(bytesResult, uuid);
   }
 
-  static String base64toHexadecimal(String data, int size) {
+  static String base64toHexadecimal(
+    String data,
+    int size,
+  ) {
     final hexadecimal = PrinterTextParserImg.base64ImageToHexadecimalString(
       _escPosPrinter,
       data,

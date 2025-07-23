@@ -2,11 +2,11 @@ name: youprint
 description: Text parser for ESC/POS Thermal Printer.
 version: 1.0.6
 homepage: https://github.com/youtaplibrary/youprint
-repository: https://github.com/youtaplibrary/youprint
-issue_tracker: https://github.com/youtaplibrary/youprint/issues
+publish_to: none
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.0.0"
 
 dependencies:
   barcode_image: ">=2.0.2 <3.0.0"
