@@ -21,7 +21,7 @@ class ReceiptLine {
 
   String get _generateDash {
     String dash = '';
-    for (int i = 0; i < Youprint.printerNbrCharactersPerLine; i++) {
+    for (int i = 0; i < Youprint.getprinterNbrCharactersPerLine(); i++) {
       dash += '-';
     }
     return dash;

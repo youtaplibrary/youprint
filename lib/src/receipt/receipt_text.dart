@@ -23,7 +23,7 @@ class ReceiptText {
 
   String get content {
     StringBuffer stringBuffer = StringBuffer();
-    final int maxChar = Youprint.printerNbrCharactersPerLine;
+    final int maxChar = Youprint.getprinterNbrCharactersPerLine();
     final multiLines = alignment == ReceiptAlignment.center ? text.splitByLength(maxChar) : [text];
 
     for (String line in multiLines) {

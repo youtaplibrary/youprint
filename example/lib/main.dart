@@ -41,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<FluetoothDevice> _devices = [];
   List<FluetoothDevice> _connectedDevice = [];
 
-  final _youprint = Youprint();
+  final _youprint = Youprint.instance;
 
   Future<void> _refreshPrinters() async {
     if (_isBusy) {
@@ -60,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _refreshPrinters();
+    _youprint.setPaperSize(PaperSize.mm58);
   }
 
   Future<void> _connect(FluetoothDevice device) async {
@@ -219,6 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (device == null) return;
 
+    // Example 1: Print receipt text with specified paper size
     await _youprint.printReceiptText(
       receiptText,
       device.id,

@@ -56,7 +56,7 @@ class ReceiptTextLeftRight {
   }
 
   String get content {
-    final int maxCharLine = Youprint.printerNbrCharactersPerLine;
+    final int maxCharLine = Youprint.getprinterNbrCharactersPerLine();
     final int maxCharColumn = maxCharLine - (maxCharLeftText ?? (maxCharLine ~/ 2)) - 1;
     final leftMultiLine = leftText.splitByLength(
       maxCharLeftText ?? maxCharColumn,
