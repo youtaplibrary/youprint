@@ -1,3 +1,5 @@
+import 'package:youprint/src/youprint.dart';
+
 import 'collection_style.dart';
 import 'receipt.dart';
 
@@ -14,7 +16,8 @@ class ReceiptImage {
   final ReceiptAlignment alignment;
   final PaperSize paperSize;
 
-  String get content => "$_alignmentStyle<img width='$width'>$base64</img>\n";
+  String get content =>
+      "$_alignmentStyle<img>${Youprint.instance.base64toHexadecimal(base64, width)}</img>\n";
 
   String get _alignmentStyle {
     if (alignment == ReceiptAlignment.left) {
