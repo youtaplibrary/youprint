@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:typed_data';
 
+import 'package:fluetooth_plus/fluetooth.dart';
 import 'package:flutter/services.dart';
 import 'package:youprint/src/receipt/receipt_image.dart';
 import 'package:youprint/youprint.dart';
+
+export 'package:fluetooth_plus/fluetooth.dart' show FluetoothDevice;
 
 enum PaperSize { mm58, mm80 }
 
