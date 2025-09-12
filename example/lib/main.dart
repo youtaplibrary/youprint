@@ -264,7 +264,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     device: device,
                     useQR: false,
                     useLogo: false,
-                    useBarcode: false,
                   );
                 }
               },

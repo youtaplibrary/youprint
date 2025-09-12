@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.6.1"
+  args:
+    dependency: transitive
+    description:
+      name: args
+      sha256: d0481093c50b1da8910eb0bb301626d4d8eb7284aa739614d2b394ee09e3ea04
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.0"
   async:
     dependency: transitive
     description:
@@ -17,6 +25,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  barcode:
+    dependency: transitive
+    description:
+      name: barcode
+      sha256: "7b6729c37e3b7f34233e2318d866e8c48ddb46c1f7ad01ff7bb2a8de1da2b9f4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.9"
+  barcode_image:
+    dependency: transitive
+    description:
+      name: barcode_image
+      sha256: b93f6ec7fa3d29373cff404ea99fb2afe895d2b4f36704e563f861e7a0818483
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
   boolean_selector:
     dependency: transitive
     description:
@@ -85,11 +109,19 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0.1.2"
-      resolved-ref: "0907040c5f09493efe83ace48c7f9c59c8ab92a7"
+      ref: "chore/add_namespace_in_gradle"
+      resolved-ref: e5bddb20a0008345b5069f402ce599a93b2e44c1
       url: "https://github.com/youtaplibrary/fluetooth.git"
     source: git
-    version: "0.1.2"
+    version: "0.1.3"
+  fluetooth_plus:
+    dependency: transitive
+    description:
+      name: fluetooth_plus
+      sha256: "33bc3981055e3ce0f4393fa1c678b1b77929f55dc0014a4f43097320abe6e5ab"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -244,6 +276,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.6"
+  qr:
+    dependency: transitive
+    description:
+      name: qr
+      sha256: "5a1d2586170e172b8a8c8470bbbffd5eb0cd38a66c0d77155ea138d3af3a4445"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -335,7 +375,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.3"
+    version: "1.0.6"
   zxing_lib:
     dependency: transitive
     description:
