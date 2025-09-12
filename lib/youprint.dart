@@ -1,5 +1,7 @@
 library youprint;
 
+export 'package:fluetooth_plus/fluetooth.dart';
+
 export 'src/async/async_esc_pos_printer.dart';
 export 'src/connection/connection.dart';
 export 'src/esc_pos_charset_encoding.dart';
