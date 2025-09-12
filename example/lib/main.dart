@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
-import 'package:fluetooth/fluetooth.dart';
+import 'package:fluetooth_plus/fluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
