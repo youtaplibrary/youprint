@@ -15,6 +15,8 @@ class PrinterTextParser {
   static const String tagsBarcode = 'barcode';
   static const String tagsQRCode = 'qrcode';
 
+  static const String tagsCut = 'cut';
+
   static const String attrBarcodeWidth = 'width';
   static const String attrBarcodeHeight = 'height';
   static const String attrBarcodeType = 'type';

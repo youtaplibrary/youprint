@@ -1,42 +1,72 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 
-import 'package:fluetooth_plus/fluetooth_plus.dart';
+import 'package:fluetooth_plus/fluetooth.dart';
 import 'package:flutter/services.dart';
 import 'package:youprint/src/receipt/receipt_image.dart';
 import 'package:youprint/youprint.dart';
 
-export 'package:fluetooth_plus/fluetooth_plus.dart' show FluetoothDevice;
+export 'package:fluetooth_plus/fluetooth.dart' show FluetoothDevice;
 
 enum PaperSize { mm58, mm80 }
 
 class Youprint {
-  static final Youprint _instance = Youprint();
+  Youprint._internal() {
+    _initializePrinter();
+  }
+
+  static final Youprint _instance = Youprint._internal();
 
   static Youprint get instance => _instance;
 
-  static int get printerDpi => 203;
+  static const int printerDpi = 203;
 
-  static double get printerWidthMM => 48.0;
+  PaperSize _paperSize = PaperSize.mm58;
 
-  static int get printerNbrCharactersPerLine => 32;
+  PaperSize get paperSize => _paperSize;
 
-  static final DeviceConnection _deviceConnection = DeviceConnection();
+  final DeviceConnection _deviceConnection = DeviceConnection();
 
-  static final AsyncEscPosPrinter _escPosPrinter = AsyncEscPosPrinter(
-    _deviceConnection,
-    printerDpi,
-    printerWidthMM,
-    printerNbrCharactersPerLine,
-  );
+  late AsyncEscPosPrinter _escPosPrinter;
 
   List<FluetoothDevice> _connectedDevices = [];
 
-  /// get connected device
   List<FluetoothDevice> get connectedDevices => _connectedDevices;
 
-  /// return bluetooth device list, handler Android and iOS in [BlueScanner]
+  void setPaperSize(PaperSize paperSize) {
+    _paperSize = paperSize;
+    _initializePrinter();
+  }
+
+  void _initializePrinter() {
+    _escPosPrinter = AsyncEscPosPrinter(
+      _deviceConnection,
+      printerDpi,
+      printerWidth,
+      printerNbrCharactersPerLine,
+    );
+  }
+
+  double get printerWidth {
+    switch (_paperSize) {
+      case PaperSize.mm58:
+        return 48.0;
+      case PaperSize.mm80:
+        return 72.0;
+    }
+  }
+
+  int get printerNbrCharactersPerLine {
+    switch (_paperSize) {
+      case PaperSize.mm58:
+        return 32;
+      case PaperSize.mm80:
+        return 48;
+    }
+  }
+
   Future<List<FluetoothDevice>> scan() {
     return Fluetooth().getAvailableDevices();
   }
@@ -45,32 +75,23 @@ class Youprint {
     return Fluetooth().getConnectedDevice();
   }
 
-  /// When connecting, reassign value [selectedDevice] from parameter [device]
-  /// and if connection time more than [timeout]
-  /// will return [ConnectionStatus.timeout]
-  /// When connection success, will return [ConnectionStatus.connected]
   Future<ConnectionStatus> connect(
     FluetoothDevice device, {
     Duration timeout = const Duration(seconds: 5),
   }) async {
     try {
       await Fluetooth().connect(device.id).timeout(timeout);
-      await Fluetooth().getConnectedDevice().then((devices) {
-        _connectedDevices = devices;
-      });
-      return Future<ConnectionStatus>.value(ConnectionStatus.connected);
+      _connectedDevices = await Fluetooth().getConnectedDevice();
+      return ConnectionStatus.connected;
     } on Exception catch (error) {
       log('$runtimeType - Error $error');
-      return Future<ConnectionStatus>.value(ConnectionStatus.timeout);
+      return ConnectionStatus.timeout;
     }
   }
 
-  /// To stop communication between bluetooth device and application
   Future<ConnectionStatus> disconnect(String uuid) async {
     await Fluetooth().disconnectDevice(uuid);
-    await Fluetooth().getConnectedDevice().then((devices) {
-      _connectedDevices = devices;
-    });
+    _connectedDevices = await Fluetooth().getConnectedDevice();
     return ConnectionStatus.disconnect;
   }
 
@@ -82,7 +103,6 @@ class Youprint {
     bool useRaster = false,
     bool openDrawer = false,
     double duration = 0,
-    PaperSize paperSize = PaperSize.mm58,
     double? textScaleFactor,
     BatchPrintOptions? batchPrintOptions,
   }) async {
@@ -116,18 +136,14 @@ class Youprint {
     }
   }
 
-  static int pxToMM(int pixel) {
+  int pxToMM(int pixel) {
     return (pixel * EscPosPrinterSize.inchToMM / printerDpi).round();
   }
 
-  static int mmToPx(int mm) {
+  int mmToPx(int mm) {
     return (mm * printerDpi / EscPosPrinterSize.inchToMM).round();
   }
 
-  /// This method only for print image with parameter [bytes] in List<int>
-  /// define [width] to custom width of image, default value is 120
-  /// [feedCount] to create more space after printing process done
-  /// [useCut] to cut printing process
   Future<void> printReceiptImage(
     List<int> bytes,
     String uuid, {
@@ -135,14 +151,13 @@ class Youprint {
     int feedCount = 0,
     bool useCut = false,
     bool openDrawer = false,
-    PaperSize paperSize = PaperSize.mm58,
   }) async {
     final base64Image = base64.encode(Uint8List.fromList(bytes));
     final ReceiptImage image = ReceiptImage(base64Image);
     _escPosPrinter.addTextToPrint(image.content);
     final bytesResult = await _escPosPrinter.parsedToBytes(
       feedCount: feedCount,
-      useCut: true,
+      useCut: useCut,
       openDrawer: openDrawer,
     );
 
@@ -151,7 +166,7 @@ class Youprint {
     await _printProcess(bytesResult, uuid);
   }
 
-  static String base64toHexadecimal(String data, int size) {
+  String base64toHexadecimal(String data, int size) {
     final hexadecimal = PrinterTextParserImg.base64ImageToHexadecimalString(
       _escPosPrinter,
       data,
@@ -161,10 +176,6 @@ class Youprint {
     return hexadecimal;
   }
 
-  /// This method only for print QR, only pass value on parameter [data]
-  /// define [size] to size of QR, default value is 120
-  /// [feedCount] to create more space after printing process done
-  /// [useCut] to cut printing process
   Future<void> printQR(
     String data,
     String uuid, {
@@ -187,9 +198,6 @@ class Youprint {
     await _printProcess(bytes, uuid);
   }
 
-  /// Reusable method for print text, image or QR based value [byteBuffer]
-  /// Handler Android or iOS will use method writeBytes from ByteBuffer
-  /// But in iOS more complex handler using service and characteristic
   Future<void> _printProcess(List<int> byteBuffer, String uuid) async {
     try {
       if (!await Fluetooth().isConnected(uuid)) {

@@ -82,7 +82,7 @@ class HtmlConverter {
         final size = qrMatch.group(1);
         final data = qrMatch.group(2);
 
-        final px = Youprint.mmToPx(int.tryParse(size ?? '') ?? 0);
+        final px = Youprint.instance.mmToPx(int.tryParse(size ?? '') ?? 0);
         final base64Data = base64.encode(_convertQRCodeToBytes(
           data ?? '',
           px,

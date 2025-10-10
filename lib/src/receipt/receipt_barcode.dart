@@ -9,6 +9,6 @@ class ReceiptBarcode {
   final String data;
   final int size;
 
-  int get mm => Youprint.pxToMM(size);
+  int get mm => Youprint.instance.pxToMM(size);
   String get content => "[C]<barcode type='128' width='$mm'>$data</barcode>\n";
 }

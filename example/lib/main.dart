@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:example/int_extension.dart';
-import 'package:fluetooth/fluetooth.dart';
+import 'package:fluetooth_plus/fluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -41,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<FluetoothDevice> _devices = [];
   List<FluetoothDevice> _connectedDevice = [];
 
-  final _youprint = Youprint();
+  final _youprint = Youprint.instance;
 
   Future<void> _refreshPrinters() async {
     if (_isBusy) {
@@ -60,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _refreshPrinters();
+    _youprint.setPaperSize(PaperSize.mm58);
   }
 
   Future<void> _connect(FluetoothDevice device) async {
@@ -148,6 +149,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     receiptText.addLeftRightText('No. Order', '10');
 
+    receiptText.addCut();
+
     receiptText.addSpacer(useDashed: true);
     receiptText.addLeftRightText(
       'Waktu',
@@ -216,6 +219,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (device == null) return;
 
+    // Example 1: Print receipt text with specified paper size
     await _youprint.printReceiptText(
       receiptText,
       device.id,
@@ -239,8 +243,8 @@ class _MyHomePageState extends State<MyHomePage> {
               subtitle: Text(currentDevice.id),
               trailing: ElevatedButton(
                 onPressed: _connectedDevice.contains(currentDevice)
-                    ? () => _connect(currentDevice)
-                    : () => _disconnect(currentDevice),
+                    ? () => _disconnect(currentDevice)
+                    : () => _connect(currentDevice),
                 child: Text(
                   _connectedDevice.contains(currentDevice)
                       ? 'Disconnect'
@@ -257,7 +261,10 @@ class _MyHomePageState extends State<MyHomePage> {
             : () {
                 for (var device in _connectedDevice) {
                   _incrementCounter(
-                      device: device, useQR: false, useLogo: false);
+                    device: device,
+                    useQR: false,
+                    useLogo: false,
+                  );
                 }
               },
         tooltip: 'Increment',

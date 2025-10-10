@@ -206,7 +206,7 @@ class EscPosPrinterCommands {
   /// Replaces a single bit in a 32-bit unsigned integer.
   static int _transformUint32Bool(int uint32, int shift, bool newValue) {
     return ((0xFFFFFFFF ^ (0x1 << shift)) & uint32) |
-        ((newValue ? 1 : 0) << shift);
+    ((newValue ? 1 : 0) << shift);
   }
 
   /// Extract slices of an image as equal-sized blobs of column-format data.
@@ -237,7 +237,15 @@ class EscPosPrinterCommands {
         width: lineHeight,
         height: heightPx,
       );
-      final Uint8List bytes = slice.getBytes();
+
+      final image = slice.convert(numChannels: 2); // grayscale + alpha
+      final Uint8List grayAlpha = image.getBytes(order: ChannelOrder.grayAlpha);
+
+      // Extract only grayscale channel (drop alpha)
+      final Uint8List bytes = Uint8List(image.width * image.height);
+      for (int i = 0, j = 0; i < grayAlpha.length; i += 2, j++) {
+        bytes[j] = grayAlpha[i]; // take only the first byte (grayscale)
+      }
       blobs.add(bytes);
       left += lineHeight;
     }
@@ -262,14 +270,14 @@ class EscPosPrinterCommands {
   List<int> _currentTextDoubleStrike = Uint8List(0);
 
   EscPosPrinterCommands printText(
-    String text,
-    List<int>? textSize,
-    List<int>? textColor,
-    List<int>? textReverseColor,
-    List<int>? textBold,
-    List<int>? textUnderline,
-    List<int>? textDoubleStrike,
-  ) {
+      String text,
+      List<int>? textSize,
+      List<int>? textColor,
+      List<int>? textReverseColor,
+      List<int>? textBold,
+      List<int>? textUnderline,
+      List<int>? textDoubleStrike,
+      ) {
     textSize ??= EscPosPrinterCommands.textSizeNormal;
     textColor ??= EscPosPrinterCommands.textColorBlack;
     textReverseColor ??= EscPosPrinterCommands.textColorReverseOff;
